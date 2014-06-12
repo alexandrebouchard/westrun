@@ -41,7 +41,7 @@ public class Launch implements Runnable
   @Option
   public String remoteLaunchCommand = "qsub";
 
-  private static final String SYNC_BOOKMARK_NAME = "sync";
+  public static final String SYNC_BOOKMARK_NAME = "wrun-sync";
 
   @Override
   public void run()

@@ -39,14 +39,7 @@ dependencies {
   compile 'com.google.code.gson:gson:2.2.4'
 }
 
-task(tutorialj, dependsOn: ['build','testClasses'], type: JavaExec) {
-  main = 'tutorialj.Main'
-  classpath {
-    configurations.compile
-    sourceSets.main.runtimeClasspath
-    sourceSets.test.runtimeClasspath
-  }
-}
+
 
 apply plugin: 'versions'
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LOCAL=@{getLocalDirectory()}
-REMOTE="@{getSSHRemoteHost()}:~/@{getProjectName}/"
+REMOTE="@{sshRemoteHost}:@{getRemoteDirectory()}"
 
 echo "Starting sync. Note: if files were deleted, this may recreate them."
 
