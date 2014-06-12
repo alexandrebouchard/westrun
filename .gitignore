@@ -1,0 +1,7 @@
+.settings
+.gradle
+.classpath
+.project
+bin
+bin/westrun
+bin/westrun/Main.class

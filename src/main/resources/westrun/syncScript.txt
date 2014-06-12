@@ -1,0 +1,12 @@
+#!/bin/bash
+
+LOCAL=@{getLocalDirectory()}
+REMOTE="@{getSSHRemoteHost()}:~/@{getProjectName}/"
+
+echo "Starting sync. Note: if files were deleted, this may recreate them."
+
+rsync -u -r $LOCAL $REMOTE > .synclog1
+
+rsync -u -r $REMOTE $LOCAL > .synclog2
+
+echo "Sync complete. See .synclog{1,2} for details"

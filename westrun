@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Simple script to run the java program from the eclipse-generated .classpath file
+
+REP_ROOT=/Users/bouchard/Documents/workspace/westrun
+
+CLASSPATH=${REP_ROOT}/bin/:`cat ${REP_ROOT}/.classpath | grep jar | sed 's/.* path..//' | sed 's/\".*//' | tr "\n" ":"`
+CLASSPATH=${CLASSPATH}:`cat ${REP_ROOT}/.classpath | grep combineaccessrules | sed "s#.* path..#${REP_ROOT}/..#" | sed 's#\".*#/bin/#' | tr "\n" ":"`
+
+
+java -Xmx2g -cp ${CLASSPATH} westrun.Launch "$@"
