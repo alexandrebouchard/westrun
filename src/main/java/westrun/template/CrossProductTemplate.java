@@ -1,4 +1,4 @@
-package westrun;
+package westrun.template;
 
 import java.util.Collections;
 import java.util.List;

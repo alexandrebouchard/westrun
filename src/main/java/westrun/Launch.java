@@ -13,6 +13,7 @@ import org.eclipse.jgit.lib.Repository;
 
 import westrun.code.SelfBuiltRepository;
 import westrun.exprepo.ExperimentsRepository;
+import westrun.template.PrepareExperiments;
 
 import com.beust.jcommander.internal.Lists;
 import com.google.common.base.Joiner;

@@ -1,4 +1,4 @@
-package westrun;
+package westrun.template;
 
 import java.io.File;
 import java.util.List;
@@ -51,16 +51,6 @@ public class PrepareExperiments
       result.add(generated);
     }
     return result;
-  }
-  
-  public static class TemplateContext
-  {
-    public final String sharedExec;
-
-    private TemplateContext(String sharedExec)
-    {
-      this.sharedExec = sharedExec;
-    }
   }
 
 }
