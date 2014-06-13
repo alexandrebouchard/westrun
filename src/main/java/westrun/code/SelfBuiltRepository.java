@@ -1,12 +1,12 @@
-package westrun;
+package westrun.code;
 
 import java.io.File;
-import java.util.List;
-
-import com.google.gson.Gson;
 
 import binc.Command;
+import briefj.BriefFiles;
 import briefj.BriefIO;
+
+import com.google.gson.Gson;
 
 
 /**
@@ -20,7 +20,7 @@ import briefj.BriefIO;
  */
 public class SelfBuiltRepository
 {
-  private static final String SPECIFICATION_FILE_NAME_CONVENTION = ".buildCommands";
+  public static final String SPECIFICATION_FILE_NAME_CONVENTION = ".buildCommands.json";
 
   /**
    * Lookup the file .buildCommands and execute them in the repository.
@@ -51,28 +51,9 @@ public class SelfBuiltRepository
   {
     return new File(repositoryRoot, SPECIFICATION_FILE_NAME_CONVENTION);
   }
-
-  public static class BuildSpecification
-  {
-    public List<CommandSpecification> buildCommands;
-  }
   
-  public static class CommandSpecification
+  public static void main(String [] args)
   {
-    public final String commandName;
-    
-    public final String commandArguments;
-    
-    public CommandSpecification(String commandName,
-        String commandArguments)
-    {
-      this.commandName = commandName;
-      this.commandArguments = commandArguments;
-    }
-
-    public Command getCommand(File runLocation)
-    {
-      return Command.cmd(commandName).withArgs(commandArguments).ranIn(runLocation).throwOnNonZeroReturnCode();
-    }
+    build(BriefFiles.currentDirectory());
   }
 }

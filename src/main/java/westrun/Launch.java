@@ -3,12 +3,16 @@ package westrun;
 import java.io.File;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.eclipse.jgit.lib.Repository;
+
+import westrun.code.SelfBuiltRepository;
+import westrun.exprepo.ExperimentsRepository;
 
 import com.beust.jcommander.internal.Lists;
 import com.google.common.base.Joiner;
@@ -29,25 +33,29 @@ public class Launch implements Runnable
   @Option(required = true)
   public File templateFile;
 
-  @Option(required = true)
-  public String remoteHost;
-  
-  @Option(required = true)
-  public String remoteExperimentDirectory;
-  
-  @Option
-  public File localCodeRepository = null;
+//  @Option(required = true)
+//  public String remoteHost;
+//  
+//  @Option(required = true)
+//  public String remoteExperimentDirectory;
+//  
+//  @Option
+//  public File localCodeRepository = null;
   
   @Option
   public String remoteLaunchCommand = "qsub";
 
-  public static final String SYNC_BOOKMARK_NAME = "wrun-sync";
+//  public static final String SYNC_BOOKMARK_NAME = "wrun-sync";
+
+  private ExperimentsRepository repo;
 
   @Override
   public void run()
   {
+    repo = ExperimentsRepository.fromWorkingDirectoryParents();
+    
     // clone code repo
-    if (localCodeRepository != null)
+    if (!StringUtils.isEmpty(repo.codeRepository))
     {
       File repository = cloneRepository();
       if (SelfBuiltRepository.loadSpecification(repository) != null)
@@ -57,10 +65,10 @@ public class Launch implements Runnable
     // prepare scripts
     List<File> launchScripts = PrepareExperiments.prepare(templateFile);
     
-    // call rsync
-    RunBookmarkedCommand.run(SYNC_BOOKMARK_NAME);
+    // sync up
+    Sync.sync();
     
-    // run the command (Later: collect the id?)
+    // run the commands (Later: collect the id?)
     System.out.println(launch(launchScripts));
   }
   
@@ -71,6 +79,7 @@ public class Launch implements Runnable
 
   private File cloneRepository()
   {
+    File localCodeRepository = new File(repo.codeRepository);
     GitRepository gitRepo = GitRepository.fromLocal(localCodeRepository);
     String commitId = gitRepo.getCommitIdentifier(); 
     BriefIO.write(Results.getFileInResultFolder("codeCommitIdentifier"), commitId);
@@ -98,24 +107,11 @@ public class Launch implements Runnable
   private String launch(List<File> launchScripts)
   {
     List<String> commands = Lists.newArrayList();
-    commands.add("cd " + remoteExperimentDirectory);
+    commands.add("cd " + repo.remoteDirectory);
     for (File launchScript : launchScripts)
       commands.add(remoteLaunchCommand + " " + launchScript);
-    return RemoteUtils.remoteBash(remoteHost, commands);
+    return RemoteUtils.remoteBash(repo.sshRemoteHost, commands);
   }
-  
-//private static final File WEST_RUN_FOLDER = new File("westrun");
-//private static final File LAUNCH_PAD_FOLDER = new File(WEST_RUN_FOLDER, "launchPad");
-
-  
-//// call prepare experiments for each template found <-- no, actually might be better to do one java thread for each
-//File templates = LAUNCH_PAD_FOLDER;
-//if (!templates.exists())
-//  return;
-//for (File templateScriptFile : BriefIO.ls(templates, "template"))
-//  
-//  
-//  name space issue
 
 
 }
