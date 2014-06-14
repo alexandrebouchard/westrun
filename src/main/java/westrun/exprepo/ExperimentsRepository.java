@@ -52,7 +52,7 @@ public class ExperimentsRepository
     ExperimentsRepository result = new ExperimentsRepository();
     OptionsUtils.parseOptions(args, result);
     if (StringUtils.isEmpty(result.remoteDirectory))
-      result.remoteDirectory = "~/" + BriefFiles.currentDirectory().getName() + "-" + BriefStrings.generateUniqueId();
+      result.remoteDirectory = "~/" + BriefFiles.currentDirectory().getName();
     return result;
   }
 

@@ -24,7 +24,14 @@ public class SetupExperimentsRepo
     new File(repo.root(), NewExperiment.DRAFTS_FOLDER_NAME).mkdir();
     
     // create remote exec dir
-    RemoteUtils.remoteBash(repo.sshRemoteHost, "mkdir " + repo.remoteDirectory);
+    try { RemoteUtils.remoteBash(repo.sshRemoteHost, "mkdir " + repo.remoteDirectory); }
+    catch (Exception e)
+    {
+      System.err.println("Could not create " + repo.getSSHString());
+      System.err.println("Check that you have password-less access to the server and " +
+      		" that the file does not exists already.");
+      System.exit(1);
+    }
     
     System.out.println("Created an experiments repository linked with " + repo.getSSHString());
     

@@ -24,12 +24,12 @@ public class Sync
     
     call(rsync
       .ranIn(repo.root())
-      .withArgs("-u -r " + repo.root().getAbsolutePath() + " " +  repo.getSSHString())
+      .withArgs("-u -r " + repo.root().getAbsolutePath() + "/ " +  repo.getSSHString())
       .saveOutputTo(new File(repo.configDir(), "synclog1")));
     
     call(rsync
         .ranIn(repo.root())
-        .withArgs("-u -r " + repo.getSSHString() + " " +  repo.root().getAbsolutePath())
+        .withArgs("-u -r " + repo.getSSHString() + "/ " +  repo.root().getAbsolutePath())
         .saveOutputTo(new File(repo.configDir(), "synclog2")));
     
     System.out.println("Sync complete. See .westrun/synclog{1,2} for details");

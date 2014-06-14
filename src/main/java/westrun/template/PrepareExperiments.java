@@ -21,7 +21,7 @@ public class PrepareExperiments
    * in class CrossProductTemplate. Put these files in the execution folder 
    * (called the shared execution folder). Then, apply MVEL to resolve the @ templates
    * in each. So far, this second phase is only used to give access to the shared exec 
-   * directory via @{sharedExec}.
+   * directory via @{sharedExec}, and to individual exec folder with @{individualExec}
    * 
    * Then each template is chmoded to 777 to be executable.
    * 
@@ -34,12 +34,15 @@ public class PrepareExperiments
     List<String> expansions = CrossProductTemplate.expandTemplate(templateContents);
     File scripts = Results.getFolderInResultFolder("launchScripts");
     
-    TemplateContext context = new TemplateContext(Results.getResultFolder().getName());
-    
     List<File> result = Lists.newArrayList();
     for (int i = 0; i < expansions.size(); i++)
     {
       String expansion = expansions.get(i);
+      
+      // create an exec for the child
+      String execFolderName = Results.nextRandomResultFolderName();
+      (new File(Results.getPoolFolder(), execFolderName)).mkdir();
+      TemplateContext context = new TemplateContext(Results.getResultFolder().getName(), execFolderName);
       
       // interpret the template language
       expansion = (String) TemplateRuntime.eval(expansion, context);

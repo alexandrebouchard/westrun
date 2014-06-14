@@ -2,6 +2,8 @@ package westrun;
 
 import java.io.File;
 
+import org.apache.commons.lang3.StringUtils;
+
 import westrun.exprepo.ExperimentsRepository;
 
 
@@ -15,8 +17,12 @@ import briefj.run.OptionsUtils;
 
 public class NewExperiment
 {
-  @Option
-  public String templateInitialContentsResource = "/westrun/startScript.txt";
+  @Option(gloss = "The resource to use as the initial contents of the " +
+  		"draft, relative to westrun.examples in the resources.")
+  public String templateInitialContentsResource = "java";
+  
+  @Option(gloss = "Name for the new template. Inside ~ if left empty.")
+  public String name = "";
   
   public static void main(String [] args)
   {
@@ -28,15 +34,23 @@ public class NewExperiment
   private void create()
   {
     ExperimentsRepository repo = ExperimentsRepository.fromWorkingDirectoryParents();
-    String template = BriefIO.resourceToString(templateInitialContentsResource); 
+    
+    String template = null;
+    String resource = "/westrun/examples/" + templateInitialContentsResource;
+    try { template = BriefIO.resourceToString(resource); }
+    catch (Exception e)
+    {
+      System.err.println("Initial contents resource not found: " + resource);
+      System.exit(1);
+    }
     File draftFolder = new File(repo.root(), DRAFTS_FOLDER_NAME);
-    File draft = new File(draftFolder, BriefStrings.generateUniqueId());
+    String finalName = (StringUtils.isEmpty(name) ? BriefStrings.generateUniqueId() : name) + ".txt";
+    File draft = new File(draftFolder,finalName);
     BriefIO.write(draft, template);
     Command.call(openCommand.withArgs(draft.getAbsolutePath()));
   }
   
   public static final Command openCommand = Command.byName("open");
   
-  public static final String DRAFTS_FOLDER_NAME = "run-template-drafts";
-  
+  public static final String DRAFTS_FOLDER_NAME = "templates";
 }

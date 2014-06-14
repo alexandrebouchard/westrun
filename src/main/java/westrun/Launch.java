@@ -8,8 +8,6 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
-import org.eclipse.jgit.internal.storage.file.FileRepository;
-import org.eclipse.jgit.lib.Repository;
 
 import westrun.code.SelfBuiltRepository;
 import westrun.exprepo.ExperimentsRepository;
@@ -19,6 +17,7 @@ import com.beust.jcommander.internal.Lists;
 import com.google.common.base.Joiner;
 
 import briefj.BriefIO;
+import briefj.BriefStrings;
 import briefj.opt.InputFile;
 import briefj.opt.Option;
 import briefj.repo.GitRepository;
@@ -30,23 +29,15 @@ import briefj.unix.RemoteUtils;
 
 public class Launch implements Runnable
 {
-  @InputFile
+  @InputFile(copy = true)
   @Option(required = true)
   public File templateFile;
-
-//  @Option(required = true)
-//  public String remoteHost;
-//  
-//  @Option(required = true)
-//  public String remoteExperimentDirectory;
-//  
-//  @Option
-//  public File localCodeRepository = null;
+  
+  @Option(required = true)
+  public String description;
   
   @Option
   public String remoteLaunchCommand = "qsub";
-
-//  public static final String SYNC_BOOKMARK_NAME = "wrun-sync";
 
   private ExperimentsRepository repo;
 
@@ -71,7 +62,16 @@ public class Launch implements Runnable
     
     // run the commands (Later: collect the id?)
     System.out.println(launch(launchScripts));
+    
+    // move template to previous-template folder
+    File previousTemplateDir = new File(repo.root(), RAN_TEMPLATE_DIR_NAME);
+    previousTemplateDir.mkdir();
+    File destination = new File(previousTemplateDir, BriefStrings.currentDataString() + "-" + templateFile.getName());
+    templateFile.renameTo(destination);
+    System.out.println("Executed template file moved to " + destination.getAbsolutePath());
   }
+  
+  public static final String RAN_TEMPLATE_DIR_NAME = "previous-templates";
   
   public static void main(String [] args) throws InvalidRemoteException, TransportException, GitAPIException
   {
