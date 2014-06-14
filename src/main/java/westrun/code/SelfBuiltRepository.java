@@ -34,6 +34,8 @@ public class SelfBuiltRepository
       throw new RuntimeException("Could not locate a repository self build specification. " +
       		"This specification should be at " + specificationPath(repositoryRoot).getAbsolutePath());
     
+    System.out.println(repositoryRoot);
+    
     for (CommandSpecification spec : specs.buildCommands)
       Command.call(spec.getCommand(repositoryRoot).withStandardOutMirroring().throwOnNonZeroReturnCode());
   }
