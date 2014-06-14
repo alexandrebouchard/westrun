@@ -35,7 +35,7 @@ public class SelfBuiltRepository
       		"This specification should be at " + specificationPath(repositoryRoot).getAbsolutePath());
     
     for (CommandSpecification spec : specs.buildCommands)
-      Command.call(spec.getCommand(repositoryRoot).withStandardOutMirroring());
+      Command.call(spec.getCommand(repositoryRoot).withStandardOutMirroring().throwOnNonZeroReturnCode());
   }
   
   public static BuildSpecification loadSpecification(File repositoryRoot)
