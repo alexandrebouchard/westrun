@@ -17,6 +17,7 @@ import com.beust.jcommander.internal.Lists;
 import com.google.common.base.Joiner;
 
 import briefj.BriefIO;
+import briefj.BriefLog;
 import briefj.BriefStrings;
 import briefj.opt.InputFile;
 import briefj.opt.Option;
@@ -87,7 +88,8 @@ public class Launch implements Runnable
     
     List<File> dirtyFile = gitRepo.dirtyFiles();
     if (!dirtyFile.isEmpty())
-      throw new RuntimeException("There are dirty files in the repository: " + Joiner.on("\n").join(dirtyFile));
+      BriefLog.warnOnce("Remove this and uncomment next line in Launch.java");
+//      throw new RuntimeException("There are dirty files in the repository: " + Joiner.on("\n").join(dirtyFile));
     
     File destination = Results.getFolderInResultFolder("code");
     try 
