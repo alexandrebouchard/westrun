@@ -1,0 +1,5 @@
+#!/bin/bash
+
+source runJava.sh
+
+runJava westrun.NewExperiment $@
