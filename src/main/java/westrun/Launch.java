@@ -4,6 +4,7 @@ import static binc.Command.call;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -37,11 +38,14 @@ public class Launch implements Runnable
   @Option(required = true)
   public File templateFile;
   
-  @Option(required = true)
+  @Option(condReq = "test=false")
   public String description;
   
   @Option
-  public String remoteLaunchCommand = "qsub";
+  public boolean test = false;
+  
+//  @Option
+//  public String remoteLaunchCommand = "qsub";
 
   private ExperimentsRepository repo;
 
@@ -54,7 +58,10 @@ public class Launch implements Runnable
     // clone code repo
     if (!StringUtils.isEmpty(repo.codeRepository))
     {
+      // clone
       File repository = cloneRepository();
+      
+      // build
       if (SelfBuiltRepository.loadSpecification(repository) != null)
         SelfBuiltRepository.build(repository);
       
@@ -71,6 +78,7 @@ public class Launch implements Runnable
             repo.getSSHString() + "/" + CODE_TO_TRANSFER)
           .saveOutputTo(new File(repo.configDir(), "codesynclog")));
       
+      // copy to unique location
       File local2 = new File(new File(repo.root(), TRANSFERRED_CODE), updatedName());
       
       try { FileUtils.copyDirectory(local1, local2); }
@@ -79,28 +87,31 @@ public class Launch implements Runnable
       String remote1 = repo.remoteDirectory + "/" + CODE_TO_TRANSFER;
       String remote2 = repo.remoteDirectory + "/" + TRANSFERRED_CODE + "/" + updatedName();
       
-      RemoteUtils.remoteBash(repo.sshRemoteHost, "cp -r " + 
-          remote1 + " " +
-          remote2);
+      RemoteUtils.remoteBash(repo.sshRemoteHost, Arrays.asList(
+          "mkdir " + repo.remoteDirectory + "/" + TRANSFERRED_CODE + ">/dev/null 2>&1",
+          "cp -r " +  remote1 + " " + remote2));
       
       codeRepo = remote2;
     }
     
     // prepare scripts
-    List<File> launchScripts = PrepareExperiments.prepare(templateFile, codeRepo, repo.root().getName());
+    List<File> launchScripts = PrepareExperiments.prepare(templateFile, repo.root().getName(), test, codeRepo, new File(repo.codeRepository).getName());
     
     // sync up
     Sync.sync();
     
     // run the commands (Later: collect the id?)
-    System.out.println(launch(launchScripts));
+    System.out.println("Launch result=" + launch(launchScripts) + "|");
     
     // move template to previous-template folder
-    File previousTemplateDir = new File(repo.root(), RAN_TEMPLATE_DIR_NAME);
-    previousTemplateDir.mkdir();
-    File destination = new File(previousTemplateDir, updatedName());
-    templateFile.renameTo(destination);
-    System.out.println("Executed template file moved to " + destination.getAbsolutePath());
+    if (!test)
+    {
+      File previousTemplateDir = new File(repo.root(), RAN_TEMPLATE_DIR_NAME);
+      previousTemplateDir.mkdir();
+      File destination = new File(previousTemplateDir, updatedName());
+      templateFile.renameTo(destination);
+      System.out.println("Executed template file moved to " + destination.getAbsolutePath());
+    }
   }
   
   public String updatedName()
@@ -150,10 +161,13 @@ public class Launch implements Runnable
 
   private String launch(List<File> launchScripts)
   {
+    String remoteLaunchCommand = test ? "bash" : "qsub";
+    
     List<String> commands = Lists.newArrayList();
     commands.add("cd " + repo.remoteDirectory);
     for (File launchScript : launchScripts)
       commands.add(remoteLaunchCommand + " " + launchScript);
+    System.out.println(commands);
     return RemoteUtils.remoteBash(repo.sshRemoteHost, commands);
   }
 

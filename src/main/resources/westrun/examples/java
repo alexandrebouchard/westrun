@@ -25,7 +25,7 @@ SPECIFIED_RESULT_FOLDER=@{individualExec}
 # the line below will result in 100 different runs, for example the first one
 # with '-random 1  -nIters 2  -method us' and the last one  
 # with '-random 10 -nIters 32 -method enemy'
-~/bin/jdk1.6.0_24/bin/java -cp @{codeRepoRoot}/build/deploy/@{projectName}/lib/\* \
+~/bin/jdk1.6.0_24/bin/java -cp @{codeRepoRoot}/build/install/@{codeRepoName}/lib/\* \
   pac.Main \
     -random @@{1--10} \
     -nIters @@{2^[1--5]} \

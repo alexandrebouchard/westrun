@@ -28,21 +28,23 @@ public class PrepareExperiments
    * @param templateFile
    * @return list of relative paths to the generated scripts
    */
-  public static List<File> prepare(File templateFile, String codeRepoRoot, String projectName)
+  // TODO: fix projectName vs repo name confusion
+  // TODO: this is now mingled
+  public static List<File> prepare(File templateFile, String projectName, boolean isTest, String codeRepoRoot, String codeRepoName)
   {
     String templateContents = BriefIO.fileToString(templateFile);
     List<String> expansions = CrossProductTemplate.expandTemplate(templateContents);
     File scripts = Results.getFolderInResultFolder("launchScripts");
     
     List<File> result = Lists.newArrayList();
-    for (int i = 0; i < expansions.size(); i++)
+    loop:for (int i = 0; i < expansions.size(); i++)
     {
       String expansion = expansions.get(i);
       
       // create an exec for the child
       String execFolderName = Results.nextRandomResultFolderName();
       (new File(Results.getPoolFolder(), "all/" + execFolderName)).mkdir();
-      TemplateContext context = new TemplateContext(Results.getResultFolder().getName(), execFolderName, codeRepoRoot, projectName);
+      TemplateContext context = new TemplateContext(Results.getResultFolder().getName(), execFolderName, codeRepoRoot, codeRepoName);
       
       // interpret the template language
       expansion = (String) TemplateRuntime.eval(expansion, context);
@@ -52,6 +54,9 @@ public class PrepareExperiments
       BriefIO.write(generated, expansion);
       call(chmod.ranIn(scripts).withArgs("777 " + generated.getName()).throwOnNonZeroReturnCode());
       result.add(generated);
+      
+      if (isTest)
+        break loop;
     }
     return result;
   }
