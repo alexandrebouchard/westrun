@@ -1,5 +1,5 @@
 #!/bin/bash
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source runJava.sh
 
-java -cp ${DIR}/../ TODO- need to do gradle build first
+runJava westrun.exprepo.SetupExperimentsRepo $@
