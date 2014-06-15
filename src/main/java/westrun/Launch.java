@@ -67,7 +67,7 @@ public class Launch implements Runnable
     // move template to previous-template folder
     File previousTemplateDir = new File(repo.root(), RAN_TEMPLATE_DIR_NAME);
     previousTemplateDir.mkdir();
-    File destination = new File(previousTemplateDir, BriefStrings.currentDataString() + "-" + templateFile.getName());
+    File destination = new File(previousTemplateDir, BriefStrings.currentDataString() + "_" + templateFile.getName() + "_" + Results.getResultFolder().getName().replace(".exec", ""));
     templateFile.renameTo(destination);
     System.out.println("Executed template file moved to " + destination.getAbsolutePath());
   }
