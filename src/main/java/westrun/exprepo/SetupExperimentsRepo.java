@@ -18,7 +18,8 @@ public class SetupExperimentsRepo
     ExperimentsRepository repo = ExperimentsRepository.fromCommandLineArguments(args);
     repo.save();
     
-    // if requested, 
+    // create ignore file for rsync
+    Sync.createExcludeList();
     
     // create some folders
     new File(repo.root(), NewExperiment.DRAFTS_FOLDER_NAME).mkdir();
