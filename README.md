@@ -36,10 +36,7 @@ These two steps will create some configurations in ``.westrun``. The format in `
 If you are using a compiled language, you will need to specify how your code is to be built. 
 
 - Change directory to the root of your code repository
-- Type ``wrun-add-build-command -commandName gradle -commandArguments installApp`` if you are using the gradle build system. Replace ``gradle`` and ``installApp`` by the command and argument of your choice if you are using another build system.
-- If needed, you can use ``wrun-add-build-command`` several times with different commands and arguments if a sequence of commands need to be executed.
-
-This simply creates a file called ``.buildcommands.json``, which can be easily modified to change configurations later on. In complex cases, have a look at it to make sure it is right (for example, that there are no duplicate entries and that the order is right). You can test your build with ``wrun-self-build`` called from the root of the code repository. Note that compilation is currently always done locally.
+- Type ``wrun-add-build-command``. (This simply creates a file called ``.buildcommands.json``, which defines a list of commands and arguments to execute; it can be modified to support build environments other than gradle.) Note that compilation is currently always done locally.
 
 
 Sending an experiment to westgrid
@@ -47,5 +44,5 @@ Sending an experiment to westgrid
 
 The main task to send an experiment is to create a *template*. A template is simply a script in which you can add special macros that are resolved into a cross product. 
 
-``cd -`` back to you experiments repository. You can create an example of a draft template by typing ``wrun-create-draft -templateInit java``. This will create a draft execution in the folder ``run-template-drafts``. You can rename this file  See the remaining instructions and configurations in this file.
+``cd -`` back to you experiments repository. You can create an example of a draft template by typing ``wrun-create-draft -templateInit java``. This will create a draft execution in the folder ``templates``. You can rename this file  See the remaining instructions and configurations in this file.
 
