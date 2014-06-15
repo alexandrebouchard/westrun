@@ -37,6 +37,7 @@ dependencies {
   compile 'org.mvel:mvel2:2.1.8.Final'
   compile 'org.hsqldb:hsqldb:2.3.1'
   compile 'com.google.code.gson:gson:2.2.4'
+  compile 'commons-io:commons-io:2.4'
 }
 
 

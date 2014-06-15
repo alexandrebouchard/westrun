@@ -3,8 +3,10 @@ package westrun.exprepo;
 
 import java.io.File;
 
+import westrun.Launch;
 import westrun.NewExperiment;
 import westrun.Sync;
+import briefj.run.OptionsUtils.InvalidOptionsException;
 import briefj.unix.RemoteUtils;
 
 
@@ -15,7 +17,9 @@ public class SetupExperimentsRepo
   public static void main(String [] args)
   {
     // create config files
-    ExperimentsRepository repo = ExperimentsRepository.fromCommandLineArguments(args);
+    ExperimentsRepository repo = null;
+    try { repo = ExperimentsRepository.fromCommandLineArguments(args);} 
+    catch (InvalidOptionsException ioe) { System.exit(1); }
     repo.save();
     
     // create ignore file for rsync
@@ -23,8 +27,12 @@ public class SetupExperimentsRepo
     
     // create some folders
     new File(repo.root(), NewExperiment.DRAFTS_FOLDER_NAME).mkdir();
+    new File(repo.root(), Launch.RAN_TEMPLATE_DIR_NAME).mkdir();
+    new File(repo.root(), Launch.CODE_TO_TRANSFER).mkdir();
+    new File(repo.root(), Launch.TRANSFERRED_CODE).mkdir();
     
     // create remote exec dir
+    System.out.println("Creating remote folder via ssh");
     try { RemoteUtils.remoteBash(repo.sshRemoteHost, "mkdir " + repo.remoteDirectory); }
     catch (Exception e)
     {

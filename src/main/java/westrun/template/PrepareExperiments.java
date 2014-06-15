@@ -28,7 +28,7 @@ public class PrepareExperiments
    * @param templateFile
    * @return list of relative paths to the generated scripts
    */
-  public static List<File> prepare(File templateFile)
+  public static List<File> prepare(File templateFile, String codeRepoRoot, String projectName)
   {
     String templateContents = BriefIO.fileToString(templateFile);
     List<String> expansions = CrossProductTemplate.expandTemplate(templateContents);
@@ -41,8 +41,8 @@ public class PrepareExperiments
       
       // create an exec for the child
       String execFolderName = Results.nextRandomResultFolderName();
-      (new File(Results.getPoolFolder(), execFolderName)).mkdir();
-      TemplateContext context = new TemplateContext(Results.getResultFolder().getName(), execFolderName);
+      (new File(Results.getPoolFolder(), "all/" + execFolderName)).mkdir();
+      TemplateContext context = new TemplateContext(Results.getResultFolder().getName(), execFolderName, codeRepoRoot, projectName);
       
       // interpret the template language
       expansion = (String) TemplateRuntime.eval(expansion, context);

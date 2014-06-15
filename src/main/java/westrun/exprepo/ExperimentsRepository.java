@@ -19,13 +19,10 @@ public class ExperimentsRepository
   @Option(required = true, gloss = "SSH host for running remote experiments") 
   public String sshRemoteHost;
   
-  @Option(gloss = "Remote directory where the experiments are ran. " +
-      "Remote creation taken care by this script. " +
-      "If left empty, a name will be generated for you.")
+  @Option(gloss = "Remote directory where the experiments are ran. ")
   public String remoteDirectory = "";
   
-  @Option(gloss = "Path to a git repository where the code used to " +
-  		"perform these experiments is located.")
+  @Option(gloss = "Absolute path to a git code repository.")
   public String codeRepository = "";
   
   public static final String CONFIG_DIR = ".westrun";

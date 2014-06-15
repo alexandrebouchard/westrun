@@ -14,7 +14,7 @@ code repository). From within each of these experiments repo, you can:
 Installation
 ------------
 
-- Requires: Java 6+, a UNIX environment, Gradle, rsync.
+- Requires: Java 6+, POSIX, git, Gradle, rsync.
 - Setup a password-less connection to the remote host.
 - Clone this repo and compile using ``gradle installApp``.
 - Add the folder ``scripts`` to your PATH variable. 
@@ -29,14 +29,14 @@ Creating an experiments repository
 --------
 
 - Create a folder that will contain your experiments, cd inside the folder
-- Type ``wrun-setup -sshRemoteHost bison.westgrid.ca -codeRepository /path/to/code``, where you should replace ``bison.westgrid.ca`` by the entry point of your westgrid cluster, and ``/path/to/code``, by the path to a git repository containing associated code.
+- Type ``wrun-init -sshRemoteHost bison.westgrid.ca -codeRepository /path/to/code``, where you should replace ``bison.westgrid.ca`` by the entry point of your westgrid cluster, and ``/path/to/code``, by the path to a git repository containing associated code.
 
 These two steps will create some configurations in ``.westrun``. The format in ``.westrun/config.json`` is pretty self-explanatory, in case you need to change the configuration later on.
 
-If you are using a compiled language, you will need to specify how your code is to be built. 
+If you are using a compiled language such as java, you will need to specify how your code is to be built. 
 
 - Change directory to the root of your code repository
-- Type ``wrun-add-build-command``. (This simply creates a file called ``.buildcommands.json``, which defines a list of commands and arguments to execute; it can be modified to support build environments other than gradle.) Note that compilation is currently always done locally.
+- Type ``wrun-add-build-command``. (This simply creates a file called ``.buildcommands.json``, which defines a list of commands and arguments to execute; by default it contains gradle commands, but it can be modified to support build environments other than gradle.) Note that compilation is currently always done locally (i.e. before sending files off to server). You can use ``wrun-self-build`` from the root of the *code* repository to test your self-building script.
 
 
 Sending an experiment to westgrid
@@ -44,5 +44,6 @@ Sending an experiment to westgrid
 
 The main task to send an experiment is to create a *template*. A template is simply a script in which you can add special macros that are resolved into a cross product. 
 
-``cd -`` back to you experiments repository. You can create an example of a draft template by typing ``wrun-create-draft -templateInit java``. This will create a draft execution in the folder ``templates``. You can rename this file  See the remaining instructions and configurations in this file.
+``cd -`` back to you experiments repository. You can create an example of a draft template by typing ``wrun-template-draft``. This will create a draft execution in the folder ``templates``. You can rename this file  See the remaining instructions and configurations in this file.
 
+Finally, launch your experiment by typing ``wrun-launch -description [Short description] -templateFile [template file]`` from the experiments repository (or subdir of).

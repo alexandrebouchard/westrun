@@ -19,10 +19,15 @@ public class AddCommand
     }
     BuildSpecification spec = SelfBuiltRepository.loadSpecification(currentDir);
     if (spec == null)
+    {
+      System.out.println("Creating empty build specification.");
       spec = new BuildSpecification();
+    }
     CommandSpecification newCmd = new CommandSpecification();
     OptionsUtils.parseOptions(args, newCmd);
     spec.buildCommands.add(newCmd);
-    spec.save(new File(currentDir, SelfBuiltRepository.SPECIFICATION_FILE_NAME_CONVENTION));
+    File result = new File(currentDir, SelfBuiltRepository.SPECIFICATION_FILE_NAME_CONVENTION);
+    spec.save(result);
+    System.out.println("Added build command in " + result);
   }
 }

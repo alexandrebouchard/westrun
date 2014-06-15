@@ -46,7 +46,7 @@ public class Sync
     System.out.println("Sync complete. See .westrun/synclog{1,2} for details");
   }
   
-  private static final Command rsync = Command.byName("rsync").throwOnNonZeroReturnCode();
+  public static final Command rsync = Command.byName("rsync").throwOnNonZeroReturnCode();
 
   public static void createExcludeList()
   {
@@ -54,6 +54,8 @@ public class Sync
     String exclude = 
       "/" + ExperimentsRepository.CONFIG_DIR + "\n" +
       "/" + NewExperiment.DRAFTS_FOLDER_NAME + "\n" +
+      "/" + Launch.CODE_TO_TRANSFER + "\n" + // this is taken care by a special sync in Launch for efficiency
+      "/" + Launch.TRANSFERRED_CODE + "\n" + 
       "/" + Launch.RAN_TEMPLATE_DIR_NAME;
     BriefIO.write(new File(repo.configDir(), IGNORE_FILE), exclude);
   }
