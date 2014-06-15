@@ -10,10 +10,10 @@ import briefj.opt.Option;
 public class CommandSpecification
 {
   @Option
-  public String commandName;
+  public String commandName = "gradle";
   
   @Option
-  public String commandArguments;
+  public String commandArguments = "--quiet installApp";
   
   public CommandSpecification() {}
   
