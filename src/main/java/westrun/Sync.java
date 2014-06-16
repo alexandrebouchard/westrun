@@ -41,6 +41,11 @@ public class Sync
     System.out.println("Sync complete. See " + ExpRepoPath.LOG_PUSH.getPathRelativeToExpRepoRoot() + " for details");
   }
   
+  public static void pushCodeTransferred(ExperimentsRepository repo)
+  {
+    call(rsync(null, repo.resolveLocal(ExpRepoPath.CODE_TRANSFERRED), repo.sshRemoteHost, repo.resolveRemote(ExpRepoPath.CODE_TRANSFERRED), true, null, null));
+  }
+  
   public static void pushCode(ExperimentsRepository repo)
   {
     System.out.println("Starting to push code to remote state.");

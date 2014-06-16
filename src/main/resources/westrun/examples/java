@@ -16,6 +16,8 @@
 # - add any executables that java might call in the path below
 # - type wrun-launch -template ..
 
+cd @{expRepo.remoteExpRepoRoot}
+
 PATH=~/mrbayes-3.1.2/mb:$PATH
 
 # this informs briefj.run.Results to write results in the directory created
