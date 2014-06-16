@@ -2,6 +2,8 @@ package westrun.template;
 
 import java.io.File;
 
+import westrun.exprepo.ExperimentsRepository;
+
 
 
 public class TemplateContext
@@ -24,9 +26,17 @@ public class TemplateContext
    */
   public final File codeRepo;
 
-  public TemplateContext(File individualExec, File codeRepo)
+  public final ExperimentsRepository expRepo;
+  
+  public String codeRepoName()
+  {
+    return expRepo.localCodeRepoRoot.getName();
+  }
+
+  public TemplateContext(File individualExec, File codeRepo, ExperimentsRepository expRepo)
   {
     this.individualExec = individualExec;
     this.codeRepo = codeRepo;
+    this.expRepo = expRepo;
   }
 }

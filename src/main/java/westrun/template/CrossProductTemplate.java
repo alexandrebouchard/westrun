@@ -179,7 +179,7 @@ public class CrossProductTemplate
     final double base = Double.parseDouble(parameters.get(0));
     final List<String> result = Lists.newArrayList();
     for (int integer : rangeValues(parameters.get(1), parameters.get(2)))
-      result.add("" + Math.pow(base, integer));
+      result.add("" + Math.round(Math.pow(base, integer)));
     return result;
   }
 

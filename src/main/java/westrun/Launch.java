@@ -17,6 +17,7 @@ import westrun.exprepo.ExpRepoPath;
 import westrun.exprepo.ExperimentsRepository;
 import westrun.template.CrossProductTemplate;
 import westrun.template.TemplateContext;
+import binc.Command;
 import briefj.BriefIO;
 import briefj.opt.InputFile;
 import briefj.opt.Option;
@@ -58,6 +59,7 @@ public class Launch implements Runnable
     if (repo.hasCodeRepository())
     {
       // clone
+      System.out.println("Cloning code");
       File repository = cloneRepository();
       
       // build
@@ -80,15 +82,14 @@ public class Launch implements Runnable
       File remoteCodePool= repo.resolveRemote(ExpRepoPath.CODE_TRANSFERRED);
       
       // new, unique code repos
-      File local2 = new File(localCodePool, updatedCodeName());
-      File remote2 = new File(remoteCodePool, updatedCodeName());
+      File local2 = new File(localCodePool, uniqueCodeRepoName());
+      File remote2 = new File(remoteCodePool, uniqueCodeRepoName());
       
       try { FileUtils.copyDirectory(local1, local2); }
       catch (Exception e) { throw new RuntimeException(e); }
       
       RemoteUtils.remoteBash(repo.sshRemoteHost, Arrays.asList(
           "cp -r " +  remote1 + " " + remote2));
-      
     }
     
     // prepare scripts
@@ -98,19 +99,19 @@ public class Launch implements Runnable
     Sync.sync(repo);
     
     // run the commands (Later: collect the id?)
-    System.out.println(launch(launchScripts));
+    launch(launchScripts);
     
     // move template to previous-template folder
     if (!test)
     {
-      File previousTemplateDir = repo.resolveLocal(ExpRepoPath.TEMPLATE_RUN); //new File(repo.root(), RAN_TEMPLATE_DIR_NAME);
-      File destination = new File(previousTemplateDir, updatedCodeName());
+      File previousTemplateDir = repo.resolveLocal(ExpRepoPath.TEMPLATE_EXECUTED); //new File(repo.root(), RAN_TEMPLATE_DIR_NAME);
+      File destination = new File(previousTemplateDir, uniqueCodeRepoName());
       templateFile.renameTo(destination);
       System.out.println("Executed template file moved to " + destination.getAbsolutePath());
     }
   }
   
-  private String updatedCodeName()
+  private String uniqueCodeRepoName()
   {
     return Results.getResultFolder().getName().replace(".exec", "");
   }
@@ -118,7 +119,7 @@ public class Launch implements Runnable
   private File codeRepo()
   {
     if (repo.hasCodeRepository())
-      return new File(ExpRepoPath.CODE_TRANSFERRED.getName(), updatedCodeName());
+      return new File(ExpRepoPath.CODE_TRANSFERRED.getName(), uniqueCodeRepoName());
     else
       return null;
   }
@@ -137,7 +138,7 @@ public class Launch implements Runnable
     
     List<File> dirtyFile = gitRepo.dirtyFiles();
     if (!tolerateDirtyCode && !dirtyFile.isEmpty())
-      throw new RuntimeException("There are dirty files in the repository: " + Joiner.on("\n").join(dirtyFile));
+      throw new RuntimeException("There are dirty files in the repository (use -tolerateDirtyCode to bypass):\n" + Joiner.on("\n").join(dirtyFile));
     
     File destination = repo.resolveLocal(ExpRepoPath.CODE_TO_TRANSFER); //new File(repo.root(), CODE_TO_TRANSFER); //Results.getFolderInResultFolder("code");
     try { FileUtils.deleteDirectory(destination); } 
@@ -158,7 +159,7 @@ public class Launch implements Runnable
     return destination;
   }
 
-  private String launch(List<File> launchScripts)
+  private void launch(List<File> launchScripts)
   {
     String remoteLaunchCommand = test ? "bash" : "qsub";
     
@@ -166,8 +167,20 @@ public class Launch implements Runnable
     commands.add("cd " + repo.remoteExpRepoRoot); //repo.remoteDirectory);
     for (File launchScript : launchScripts)
       commands.add(remoteLaunchCommand + " " + launchScript);
-    System.out.println(commands);
-    return RemoteUtils.remoteBash(repo.sshRemoteHost, commands);
+    if (test) 
+    {
+      System.out.println("Starting test. Mirrored output:");
+      RemoteUtils.ssh
+        .withArgs(repo.sshRemoteHost + " /bin/bash -s")
+        .withStandardOutMirroring()
+        .callWithInputStreamContents(Joiner.on("\n").join(commands));
+    }
+    else
+    {
+      System.out.println("Submitting qsub jobs");
+      String result = RemoteUtils.remoteBash(repo.sshRemoteHost, commands);
+      BriefIO.write(Results.getFileInResultFolder("qsubOutput"), result);
+    }
   }
 
   /**
@@ -199,7 +212,7 @@ public class Launch implements Runnable
       String execFolderName = Results.nextRandomResultFolderName();
       File indivExec = (new File(new File(Results.getPoolFolder(), "all"), execFolderName));
       indivExec.mkdir();
-      TemplateContext context = new TemplateContext(indivExec, codeRepo());
+      TemplateContext context = new TemplateContext(indivExec, codeRepo(), repo);
       
       // interpret the template language
       expansion = (String) TemplateRuntime.eval(expansion, context);

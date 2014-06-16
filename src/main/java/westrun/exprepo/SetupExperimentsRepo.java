@@ -1,6 +1,8 @@
 package westrun.exprepo;
 
 
+import java.util.Arrays;
+
 import westrun.Sync;
 import briefj.unix.RemoteUtils;
 
@@ -14,7 +16,7 @@ public class SetupExperimentsRepo
     createAllLocalDirs(repo);
     repo.configuration.toJSON(repo.resolveLocal(ExpRepoPath.MAIN_CONFIG_FILE));
     Sync.createExcludeList(repo);
-    createRemoteExpRepoRoot(repo);
+    createRemoteExpRepo(repo);
     Sync.sync(repo);
   }
   
@@ -25,10 +27,12 @@ public class SetupExperimentsRepo
         repo.resolveLocal(item).mkdir();
   }
 
-  private static void createRemoteExpRepoRoot(ExperimentsRepository repo)
+  private static void createRemoteExpRepo(ExperimentsRepository repo)
   {
     System.out.println("Creating remote folder via ssh");
-    try { RemoteUtils.remoteBash(repo.sshRemoteHost, "mkdir -p " + repo.remoteExpRepoRoot.getAbsolutePath()); }
+    try { RemoteUtils.remoteBash(repo.sshRemoteHost, Arrays.asList(
+        "mkdir -p " + repo.remoteExpRepoRoot.getAbsolutePath(),
+        "mkdir -p " + repo.resolveRemote(ExpRepoPath.CODE_TRANSFERRED))); }
     catch (Exception e)
     {
       System.err.println("Could not create " + repo.getSSHString());

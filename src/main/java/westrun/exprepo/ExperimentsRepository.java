@@ -4,14 +4,7 @@ import java.io.File;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.google.gson.Gson;
-
-
-import binc.BinCallUtils;
 import briefj.BriefFiles;
-import briefj.BriefIO;
-import briefj.BriefStrings;
-import briefj.opt.Option;
 import briefj.run.OptionsUtils;
 import briefj.unix.RemoteUtils;
 
@@ -96,14 +89,12 @@ public class ExperimentsRepository
     return path.buildFile(remoteExpRepoRoot);
   }
   
-
-  
   private static void resolveRemoteHome(ExperimentsRepoConfig config, File localExpRepoRoot)
   {
     if (StringUtils.isEmpty(config.remoteDirectory))
     {
       // find remote home
-      String home = RemoteUtils.remoteBash(config.sshRemoteHost, "echo ~");
+      String home = RemoteUtils.remoteBash(config.sshRemoteHost, "echo ~").replace("\n", "");
       config.remoteDirectory = home + "/" + localExpRepoRoot.getName();
     }
   }

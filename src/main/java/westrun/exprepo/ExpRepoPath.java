@@ -20,13 +20,13 @@ public enum ExpRepoPath
   CONFIG              (true,  ".westrun"),
   MAIN_CONFIG_FILE    (false, ".westrun", "config.json"),
   IGNORE_FILE         (false, ".westrun", "syncignore"),
-  SYNC_LOG_1          (false, ".westrun", "log_exp_push"),
-  SYNC_LOG_2          (false, ".westrun", "log_exp_pull"),
-  SYNC_CODE           (false, ".westrun", "log_code_push"),
-  CODE_TRANSFERRED    (true,  ".code_transferred"), 
-  CODE_TO_TRANSFER    (true,  ".code_to_transfer"), 
-  TEMPLATE_DRAFT      (true,  "template_drafts"), 
-  TEMPLATE_RUN        (true,  "template_run");
+  LOG_PUSH            (false, ".westrun", "logPush"),
+  LOG_PULL            (false, ".westrun", "logPull"),
+  LOG_CODE_PUSH       (false, ".westrun", "logCodePush"),
+  CODE_TRANSFERRED    (true,  ".codeTransferred"), 
+  CODE_TO_TRANSFER    (true,  ".codeToTransfer"), 
+  TEMPLATE_DRAFTS     (true,  "templateDrafts"), 
+  TEMPLATE_EXECUTED   (true,  "templateExecuted");
   
   public final boolean isDirectory;
   public final List<String> pathRelativeToExpRepoRoot;

@@ -44,7 +44,7 @@ public class NewExperiment
       System.err.println("Initial contents resource not found: " + resource);
       System.exit(1);
     }
-    File draftFolder = repo.resolveLocal(ExpRepoPath.TEMPLATE_DRAFT); //  new File(repo.root(), DRAFTS_FOLDER_NAME);
+    File draftFolder = repo.resolveLocal(ExpRepoPath.TEMPLATE_DRAFTS); //  new File(repo.root(), DRAFTS_FOLDER_NAME);
     String finalName = (StringUtils.isEmpty(name) ? BriefStrings.generateUniqueId() : name);
     File draft = new File(draftFolder,finalName);
     BriefIO.write(draft, template);
