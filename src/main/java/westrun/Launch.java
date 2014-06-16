@@ -1,34 +1,32 @@
 package westrun;
 
-import static binc.Command.call;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.mvel2.templates.TemplateRuntime;
 
 import westrun.code.SelfBuiltRepository;
+import westrun.exprepo.ExpRepoPath;
 import westrun.exprepo.ExperimentsRepository;
-import westrun.template.PrepareExperiments;
-
-import com.beust.jcommander.internal.Lists;
-import com.google.common.base.Joiner;
-
+import westrun.template.CrossProductTemplate;
+import westrun.template.TemplateContext;
 import briefj.BriefIO;
-import briefj.BriefStrings;
 import briefj.opt.InputFile;
 import briefj.opt.Option;
 import briefj.repo.GitRepository;
 import briefj.run.Mains;
 import briefj.run.Results;
 import briefj.unix.RemoteUtils;
+
+import com.beust.jcommander.internal.Lists;
+import com.google.common.base.Joiner;
 
 
 
@@ -41,19 +39,23 @@ public class Launch implements Runnable
   @Option(condReq = "test=false")
   public String description;
   
-  @Option
+  @Option(gloss = "Only runs one of the items in the cross product " +
+  		"interactively, by passing qsub for testing.")
   public boolean test = false;
+  
+  @Option(gloss = "If we should continue the launch even if some " +
+  		"files are not committed into the code repo.")
+  public boolean tolerateDirtyCode = false;
   
   private ExperimentsRepository repo;
 
   @Override
   public void run()
   {
-    repo = ExperimentsRepository.fromWorkingDirectoryParents();
+    repo = ExperimentsRepository.fromWorkingDirParents();
     
-    String codeRepo = "";
     // clone code repo
-    if (!StringUtils.isEmpty(repo.codeRepository))
+    if (repo.hasCodeRepository())
     {
       // clone
       File repository = cloneRepository();
@@ -62,64 +64,64 @@ public class Launch implements Runnable
       if (SelfBuiltRepository.loadSpecification(repository) != null)
         SelfBuiltRepository.build(repository);
       
-      File local1  = new File(repo.root(), CODE_TO_TRANSFER);
-      
       // transfer code delta
-      call(Sync.rsync
-          .ranIn(repo.root())
-          .withArgs(
-            "--delete-after " +
-            "-u " +
-            "-r " + 
-            local1.getAbsolutePath() + "/ " +  
-            repo.getSSHString() + "/" + CODE_TO_TRANSFER)
-          .saveOutputTo(new File(repo.configDir(), "codesynclog")));
+      Sync.pushCode(repo);
       
-      // copy to unique location
-      File local2 = new File(new File(repo.root(), TRANSFERRED_CODE), updatedCodeName());
+      // next, we need to make sure that experiments will run smoothly
+      // even if we have several at the same time running with different 
+      // versions of code
+      
+      // current paths
+      File local1  = repo.resolveLocal(ExpRepoPath.CODE_TO_TRANSFER); 
+      File remote1 = repo.resolveRemote(ExpRepoPath.CODE_TO_TRANSFER);
+      
+      // pools of unique code repos
+      File localCodePool = repo.resolveLocal(ExpRepoPath.CODE_TRANSFERRED);
+      File remoteCodePool= repo.resolveRemote(ExpRepoPath.CODE_TRANSFERRED);
+      
+      // new, unique code repos
+      File local2 = new File(localCodePool, updatedCodeName());
+      File remote2 = new File(remoteCodePool, updatedCodeName());
       
       try { FileUtils.copyDirectory(local1, local2); }
       catch (Exception e) { throw new RuntimeException(e); }
       
-      String remote1 = repo.remoteDirectory + "/" + CODE_TO_TRANSFER;
-      String remote2 = repo.remoteDirectory + "/" + TRANSFERRED_CODE + "/" + updatedCodeName();
-      
       RemoteUtils.remoteBash(repo.sshRemoteHost, Arrays.asList(
-          "mkdir " + repo.remoteDirectory + "/" + TRANSFERRED_CODE + ">/dev/null 2>&1",
           "cp -r " +  remote1 + " " + remote2));
       
-      codeRepo = remote2;
     }
     
     // prepare scripts
-    List<File> launchScripts = PrepareExperiments.prepare(templateFile, repo.root().getName(), test, codeRepo, new File(repo.codeRepository).getName());
+    List<File> launchScripts = prepareLaunchScripts();
     
     // sync up
-    Sync.sync();
+    Sync.sync(repo);
     
     // run the commands (Later: collect the id?)
-    System.out.println("Launch result=" + launch(launchScripts) + "|");
+    System.out.println(launch(launchScripts));
     
     // move template to previous-template folder
     if (!test)
     {
-      File previousTemplateDir = new File(repo.root(), RAN_TEMPLATE_DIR_NAME);
-      previousTemplateDir.mkdir();
+      File previousTemplateDir = repo.resolveLocal(ExpRepoPath.TEMPLATE_RUN); //new File(repo.root(), RAN_TEMPLATE_DIR_NAME);
       File destination = new File(previousTemplateDir, updatedCodeName());
       templateFile.renameTo(destination);
       System.out.println("Executed template file moved to " + destination.getAbsolutePath());
     }
   }
   
-  public String updatedCodeName()
+  private String updatedCodeName()
   {
     return Results.getResultFolder().getName().replace(".exec", "");
   }
   
-  public static final String RAN_TEMPLATE_DIR_NAME = "previous-templates";
-
-  public static final String CODE_TO_TRANSFER = ".codeToTransfer";
-  public static final String TRANSFERRED_CODE = ".transferredCode";
+  private File codeRepo()
+  {
+    if (repo.hasCodeRepository())
+      return new File(ExpRepoPath.CODE_TRANSFERRED.getName(), updatedCodeName());
+    else
+      return null;
+  }
   
   public static void main(String [] args) throws InvalidRemoteException, TransportException, GitAPIException
   {
@@ -128,16 +130,16 @@ public class Launch implements Runnable
 
   private File cloneRepository()
   {
-    File localCodeRepository = new File(repo.codeRepository);
+    File localCodeRepository = repo.localCodeRepoRoot;
     GitRepository gitRepo = GitRepository.fromLocal(localCodeRepository);
     String commitId = gitRepo.getCommitIdentifier(); 
     BriefIO.write(Results.getFileInResultFolder("codeCommitIdentifier"), commitId);
     
     List<File> dirtyFile = gitRepo.dirtyFiles();
-    if (!dirtyFile.isEmpty())
+    if (!tolerateDirtyCode && !dirtyFile.isEmpty())
       throw new RuntimeException("There are dirty files in the repository: " + Joiner.on("\n").join(dirtyFile));
     
-    File destination = new File(repo.root(), CODE_TO_TRANSFER); //Results.getFolderInResultFolder("code");
+    File destination = repo.resolveLocal(ExpRepoPath.CODE_TO_TRANSFER); //new File(repo.root(), CODE_TO_TRANSFER); //Results.getFolderInResultFolder("code");
     try { FileUtils.deleteDirectory(destination); } 
     catch (IOException e) { throw new RuntimeException(e); }
     
@@ -161,12 +163,56 @@ public class Launch implements Runnable
     String remoteLaunchCommand = test ? "bash" : "qsub";
     
     List<String> commands = Lists.newArrayList();
-    commands.add("cd " + repo.remoteDirectory);
+    commands.add("cd " + repo.remoteExpRepoRoot); //repo.remoteDirectory);
     for (File launchScript : launchScripts)
       commands.add(remoteLaunchCommand + " " + launchScript);
     System.out.println(commands);
     return RemoteUtils.remoteBash(repo.sshRemoteHost, commands);
   }
 
-
+  /**
+   * Break the template into many templates using the @@ annotation documented
+   * in class CrossProductTemplate. Put these files in the execution folder 
+   * (called the shared execution folder). Then, apply MVEL to resolve the @ templates
+   * in each. So far, this second phase is only used to give access to the shared exec 
+   * directory via @{sharedExec}, and to individual exec folder with @{individualExec}
+   * 
+   * Then each template is chmoded to 777 to be executable.
+   * 
+   * @param templateFile
+   * @return list of relative paths to the generated scripts
+   */
+  // TODO: fix projectName vs repo name confusion
+  // TODO: this is now mingled
+  private List<File> prepareLaunchScripts()
+  {
+    String templateContents = BriefIO.fileToString(templateFile);
+    List<String> expansions = CrossProductTemplate.expandTemplate(templateContents);
+    File scripts = Results.getFolderInResultFolder("launchScripts");
+    
+    List<File> result = Lists.newArrayList();
+    loop:for (int i = 0; i < expansions.size(); i++)
+    {
+      String expansion = expansions.get(i);
+      
+      // create an exec for the child
+      String execFolderName = Results.nextRandomResultFolderName();
+      File indivExec = (new File(new File(Results.getPoolFolder(), "all"), execFolderName));
+      indivExec.mkdir();
+      TemplateContext context = new TemplateContext(indivExec, codeRepo());
+      
+      // interpret the template language
+      expansion = (String) TemplateRuntime.eval(expansion, context);
+      
+      // write the generated file
+      File generated = new File(scripts, "script-" + i + ".bash");
+      BriefIO.write(generated, expansion);
+      generated.setExecutable(true);
+      result.add(generated);
+      
+      if (test)
+        break loop;
+    }
+    return result;
+  }
 }

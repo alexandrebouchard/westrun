@@ -27,10 +27,13 @@ import briefj.unix.RemoteUtils;
  */
 public class ExperimentsRepository
 {
+  /*
+   * e.g. name@host.com
+   */
   public final String sshRemoteHost;
   
   /*
-   * These are absolute paths.
+   * These are assumed to be absolute paths.
    */
   public final File localExpRepoRoot;
   public final File remoteExpRepoRoot;
@@ -40,10 +43,12 @@ public class ExperimentsRepository
   
   private ExperimentsRepository(ExperimentsRepoConfig config, File localExpRepoRoot)
   {
+    if (StringUtils.isEmpty(config.remoteDirectory))
+      throw new RuntimeException("Remote should not be empty in the JSON file.");
     this.localExpRepoRoot = localExpRepoRoot;
     this.sshRemoteHost = config.sshRemoteHost;
     this.remoteExpRepoRoot = new File(config.remoteDirectory);
-    this.localCodeRepoRoot = new File(config.codeRepository);
+    this.localCodeRepoRoot = StringUtils.isEmpty(config.codeRepository) ? null : new File(config.codeRepository);
     this.configuration = config;
   }
 
@@ -74,6 +79,11 @@ public class ExperimentsRepository
   public String getSSHString()
   {
     return "" + sshRemoteHost + ":" + remoteExpRepoRoot;
+  }
+  
+  public boolean hasCodeRepository()
+  {
+    return localCodeRepoRoot != null;
   }
   
   public File resolveLocal(ExpRepoPath path)

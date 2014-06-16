@@ -8,6 +8,8 @@ import westrun.exprepo.ExperimentsRepository;
 import binc.Command;
 import briefj.BriefIO;
 
+import static binc.Command.call;
+
 
 
 
@@ -22,21 +24,33 @@ public class Sync
   public static void sync(ExperimentsRepository repo)
   {
     System.out.println("Starting sync. Note: if files were deleted, this may recreate them " +
-    		"\n  (use wrun-clean for remote delete).");
+    		"\n  (use wrun-clean for removing deleted files on the remote host).");
     
-    rsync(repo.localExpRepoRoot, repo.remoteExpRepoRoot, false, repo.resolveLocal(ExpRepoPath.SYNC_LOG_1), repo.resolveLocal(ExpRepoPath.IGNORE_FILE));
-    rsync(repo.remoteExpRepoRoot, repo.localExpRepoRoot, false, repo.resolveLocal(ExpRepoPath.SYNC_LOG_2), repo.resolveLocal(ExpRepoPath.IGNORE_FILE));
+    call(rsync(repo.localExpRepoRoot, repo.remoteExpRepoRoot, false, repo.resolveLocal(ExpRepoPath.SYNC_LOG_1), repo.resolveLocal(ExpRepoPath.IGNORE_FILE)));
+    call(rsync(repo.remoteExpRepoRoot, repo.localExpRepoRoot, false, repo.resolveLocal(ExpRepoPath.SYNC_LOG_2), repo.resolveLocal(ExpRepoPath.IGNORE_FILE)));
     
-    System.out.println("Sync complete. See .westrun/synclog{1,2} for details");
+    System.out.println("Sync complete. See .westrun/log_exp_push and _pull for details");
   }
   
   public static void pushLocalToRemote(ExperimentsRepository repo)
   {
     System.out.println("Starting to push local state to remote state.");
     
-    rsync(repo.localExpRepoRoot, repo.remoteExpRepoRoot, true, repo.resolveLocal(ExpRepoPath.SYNC_LOG_1), repo.resolveLocal(ExpRepoPath.IGNORE_FILE));
+    call(rsync(repo.localExpRepoRoot, repo.remoteExpRepoRoot, true, repo.resolveLocal(ExpRepoPath.SYNC_LOG_1), repo.resolveLocal(ExpRepoPath.IGNORE_FILE)));
     
-    System.out.println("Sync complete. See .westrun/synclog1 for details");
+    System.out.println("Sync complete. See .westrun/log_exp_push for details");
+  }
+  
+  public static void pushCode(ExperimentsRepository repo)
+  {
+    System.out.println("Starting to push code to remote state.");
+    
+    File local  = repo.resolveLocal(ExpRepoPath.CODE_TO_TRANSFER);
+    File remote = repo.resolveRemote(ExpRepoPath.CODE_TO_TRANSFER);
+    
+    call(rsync(local, remote, true, repo.resolveLocal(ExpRepoPath.SYNC_CODE), null));
+    
+    System.out.println("Sync complete. See .westrun/log_code_push for details");
   }
   
   private static Command rsync(File srcDir, File destDir, boolean deleteAfter, File logFile, File exclusions)

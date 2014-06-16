@@ -6,20 +6,27 @@ import java.io.File;
 
 public class TemplateContext
 {
-  public final String sharedExec;
-  public final String individualExec;
-  public final String codeRepoName;
+  /**
+   * Path to the exec folder created specially for
+   * an individual point in the cross product.
+   * 
+   * Relative to the root of the experiments 
+   * repository.
+   */
+  public final File individualExec;
   
   /**
-   * Root of a copy of the code repository created for this run
+   * Path to the code repository specific to this
+   * run but shared by all in the cross product.
+   *  
+   * Relative to the root of the experiments 
+   * repository.
    */
-  public String codeRepoRoot;
+  public final File codeRepo;
 
-  TemplateContext(String sharedExec, String individualExec, String codeRepoRoot, String codeRepoName)
+  public TemplateContext(File individualExec, File codeRepo)
   {
-    this.sharedExec = sharedExec;
     this.individualExec = individualExec;
-    this.codeRepoRoot = codeRepoRoot;
-    this.codeRepoName = codeRepoName;
+    this.codeRepo = codeRepo;
   }
 }
