@@ -2,6 +2,7 @@ package westrun;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -47,6 +48,9 @@ public class Launch implements Runnable
   @Option(gloss = "If we should continue the launch even if some " +
   		"files are not committed into the code repo.")
   public boolean tolerateDirtyCode = false;
+  
+  @Option(gloss = "Path to look for the qsub command.")
+  public ArrayList<String> qsubPaths = (ArrayList<String>) Lists.newArrayList("/opt/torque/bin", "/opt/bin");
   
   private ExperimentsRepository repo;
 
@@ -161,12 +165,15 @@ public class Launch implements Runnable
 
   private void launch(List<File> launchScripts)
   {
-    String remoteLaunchCommand = test ? "bash" : "qsub";
+    String remoteLaunchCommand = test ? "bash" : "qsub -d " + repo.remoteExpRepoRoot;
     
     List<String> commands = Lists.newArrayList();
-    commands.add("cd " + repo.remoteExpRepoRoot); //repo.remoteDirectory);
+    commands.add("PATH=$PATH:" + Joiner.on(":").join(qsubPaths));
+    commands.add("cd " + repo.remoteExpRepoRoot); 
+    
     for (File launchScript : launchScripts)
       commands.add(remoteLaunchCommand + " " + launchScript);
+    
     if (test) 
     {
       System.out.println("Starting test. Mirrored output:");
@@ -195,8 +202,6 @@ public class Launch implements Runnable
    * @param templateFile
    * @return list of relative paths to the generated scripts
    */
-  // TODO: fix projectName vs repo name confusion
-  // TODO: this is now mingled
   private List<File> prepareLaunchScripts()
   {
     String templateContents = BriefIO.fileToString(templateFile);
