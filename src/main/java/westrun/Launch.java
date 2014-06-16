@@ -102,9 +102,9 @@ public class Launch implements Runnable
     launch(launchScripts);
     
     // move template to previous-template folder
-    if (!test)
+    if (!test && templateFile.getParent().equals(repo.resolveLocal(ExpRepoPath.TEMPLATE_DRAFTS)))
     {
-      File previousTemplateDir = repo.resolveLocal(ExpRepoPath.TEMPLATE_EXECUTED); //new File(repo.root(), RAN_TEMPLATE_DIR_NAME);
+      File previousTemplateDir = repo.resolveLocal(ExpRepoPath.TEMPLATE_EXECUTED); 
       File destination = new File(previousTemplateDir, uniqueCodeRepoName());
       templateFile.renameTo(destination);
       System.out.println("Executed template file moved to " + destination.getAbsolutePath());
@@ -177,7 +177,7 @@ public class Launch implements Runnable
     }
     else
     {
-      System.out.println("Submitting qsub jobs");
+      System.out.println("Submitting " + launchScripts.size() + " qsub jobs");
       String result = RemoteUtils.remoteBash(repo.sshRemoteHost, commands);
       BriefIO.write(Results.getFileInResultFolder("qsubOutput"), result);
     }
