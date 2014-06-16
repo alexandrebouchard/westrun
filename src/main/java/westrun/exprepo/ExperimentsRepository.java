@@ -6,63 +6,95 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.google.gson.Gson;
 
+
+import binc.BinCallUtils;
 import briefj.BriefFiles;
 import briefj.BriefIO;
 import briefj.BriefStrings;
 import briefj.opt.Option;
 import briefj.run.OptionsUtils;
+import briefj.unix.RemoteUtils;
 
 
-
+/**
+ * A repository of experiments. Contains the information read
+ * from a config file. The main purpose of this class is to 
+ * keep centralized info on the subdirectory structure used by
+ * westrun.
+ * 
+ * @author Alexandre Bouchard (alexandre.bouchard@gmail.com)
+ *
+ */
 public class ExperimentsRepository
 {
-  @Option(required = true, gloss = "SSH host for running remote experiments") 
-  public String sshRemoteHost;
+  public final String sshRemoteHost;
   
-  @Option(gloss = "Remote directory where the experiments are ran. ")
-  public String remoteDirectory = "";
+  /*
+   * These are absolute paths.
+   */
+  public final File localExpRepoRoot;
+  public final File remoteExpRepoRoot;
+  public final File localCodeRepoRoot;
   
-  @Option(gloss = "Absolute path to a git code repository.")
-  public String codeRepository = "";
+  public final ExperimentsRepoConfig configuration;
   
-  public static final String CONFIG_DIR = ".westrun";
-  public static final String MAIN_CONFIG_FILE = "config.json";
-  
-  public File root()
+  private ExperimentsRepository(ExperimentsRepoConfig config, File localExpRepoRoot)
   {
-    return BriefFiles.findFileInParents(CONFIG_DIR).getParentFile();
+    this.localExpRepoRoot = localExpRepoRoot;
+    this.sshRemoteHost = config.sshRemoteHost;
+    this.remoteExpRepoRoot = new File(config.remoteDirectory);
+    this.localCodeRepoRoot = new File(config.codeRepository);
+    this.configuration = config;
   }
-  
-  public File configDir()
+
+  public static ExperimentsRepository fromWorkingDirParents()
   {
-    return new File(root(), CONFIG_DIR);
-  }
-  
-  public static ExperimentsRepository fromWorkingDirectoryParents()
-  {
-    File configFile = new File(BriefFiles.findFileInParents(CONFIG_DIR), MAIN_CONFIG_FILE);
-    return new Gson().fromJson(BriefIO.fileToString(configFile), ExperimentsRepository.class);
+    File configFile = new File(BriefFiles.findFileInParents(ExpRepoPath.CONFIG.getName()), ExpRepoPath.MAIN_CONFIG_FILE.getName()); ///CONFIG_DIR), MAIN_CONFIG_FILE);
+    ExperimentsRepoConfig config = ExperimentsRepoConfig.fromJSON(configFile);
+    File localExpRepoRoot = configFile.getParentFile().getParentFile();
+    return new ExperimentsRepository(config, localExpRepoRoot);
   }
   
   public static ExperimentsRepository fromCommandLineArguments(String [] args)
   {
-    ExperimentsRepository result = new ExperimentsRepository();
-    OptionsUtils.parseOptions(args, result);
-    if (StringUtils.isEmpty(result.remoteDirectory))
-      result.remoteDirectory = "~/" + BriefFiles.currentDirectory().getName();
-    return result;
+    // gather info
+    ExperimentsRepoConfig config = new ExperimentsRepoConfig();
+    OptionsUtils.parseOptions(args, config);
+    File localExpRepoRoot = BriefFiles.currentDirectory();
+    
+    // resolve remote home
+    resolveRemoteHome(config, localExpRepoRoot);
+    
+    return new ExperimentsRepository(config, localExpRepoRoot);
   }
-
-  public void save()
-  {
-    File configDir = new File(CONFIG_DIR);
-    configDir.mkdir();
-    File destination = new File(configDir, MAIN_CONFIG_FILE);
-    BriefIO.write(destination, BriefIO.createGson().toJson(this));
-  }
-
+  
+//  public static final String CONFIG_DIR = ".westrun";
+//  public static final String MAIN_CONFIG_FILE = "config.json";
+  
   public String getSSHString()
   {
-    return "" + sshRemoteHost + ":" + remoteDirectory;
+    return "" + sshRemoteHost + ":" + remoteExpRepoRoot;
+  }
+  
+  public File resolveLocal(ExpRepoPath path)
+  {
+    return path.buildFile(localExpRepoRoot);
+  }
+  
+  public File resolveRemote(ExpRepoPath path)
+  {
+    return path.buildFile(remoteExpRepoRoot);
+  }
+  
+
+  
+  private static void resolveRemoteHome(ExperimentsRepoConfig config, File localExpRepoRoot)
+  {
+    if (StringUtils.isEmpty(config.remoteDirectory))
+    {
+      // find remote home
+      String home = RemoteUtils.remoteBash(config.sshRemoteHost, "echo ~");
+      config.remoteDirectory = home + "/" + localExpRepoRoot.getName();
+    }
   }
 }

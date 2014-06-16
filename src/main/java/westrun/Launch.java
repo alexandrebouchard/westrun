@@ -44,9 +44,6 @@ public class Launch implements Runnable
   @Option
   public boolean test = false;
   
-//  @Option
-//  public String remoteLaunchCommand = "qsub";
-
   private ExperimentsRepository repo;
 
   @Override
@@ -79,13 +76,13 @@ public class Launch implements Runnable
           .saveOutputTo(new File(repo.configDir(), "codesynclog")));
       
       // copy to unique location
-      File local2 = new File(new File(repo.root(), TRANSFERRED_CODE), updatedName());
+      File local2 = new File(new File(repo.root(), TRANSFERRED_CODE), updatedCodeName());
       
       try { FileUtils.copyDirectory(local1, local2); }
       catch (Exception e) { throw new RuntimeException(e); }
       
       String remote1 = repo.remoteDirectory + "/" + CODE_TO_TRANSFER;
-      String remote2 = repo.remoteDirectory + "/" + TRANSFERRED_CODE + "/" + updatedName();
+      String remote2 = repo.remoteDirectory + "/" + TRANSFERRED_CODE + "/" + updatedCodeName();
       
       RemoteUtils.remoteBash(repo.sshRemoteHost, Arrays.asList(
           "mkdir " + repo.remoteDirectory + "/" + TRANSFERRED_CODE + ">/dev/null 2>&1",
@@ -108,15 +105,15 @@ public class Launch implements Runnable
     {
       File previousTemplateDir = new File(repo.root(), RAN_TEMPLATE_DIR_NAME);
       previousTemplateDir.mkdir();
-      File destination = new File(previousTemplateDir, updatedName());
+      File destination = new File(previousTemplateDir, updatedCodeName());
       templateFile.renameTo(destination);
       System.out.println("Executed template file moved to " + destination.getAbsolutePath());
     }
   }
   
-  public String updatedName()
+  public String updatedCodeName()
   {
-    return BriefStrings.currentDataString() + "_" + templateFile.getName() + "_" + Results.getResultFolder().getName().replace(".exec", "");
+    return Results.getResultFolder().getName().replace(".exec", "");
   }
   
   public static final String RAN_TEMPLATE_DIR_NAME = "previous-templates";

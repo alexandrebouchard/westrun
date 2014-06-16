@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.apache.commons.lang3.StringUtils;
 
+import westrun.exprepo.ExpRepoPath;
 import westrun.exprepo.ExperimentsRepository;
 
 
@@ -33,7 +34,7 @@ public class NewExperiment
 
   private void create()
   {
-    ExperimentsRepository repo = ExperimentsRepository.fromWorkingDirectoryParents();
+    ExperimentsRepository repo = ExperimentsRepository.fromWorkingDirParents();
     
     String template = null;
     String resource = "/westrun/examples/" + templateInitialContentsResource;
@@ -43,14 +44,14 @@ public class NewExperiment
       System.err.println("Initial contents resource not found: " + resource);
       System.exit(1);
     }
-    File draftFolder = new File(repo.root(), DRAFTS_FOLDER_NAME);
-    String finalName = (StringUtils.isEmpty(name) ? BriefStrings.generateUniqueId() : name) + ".txt";
+    File draftFolder = repo.resolveLocal(ExpRepoPath.TEMPLATE_DRAFT); //  new File(repo.root(), DRAFTS_FOLDER_NAME);
+    String finalName = (StringUtils.isEmpty(name) ? BriefStrings.generateUniqueId() : name);
     File draft = new File(draftFolder,finalName);
     BriefIO.write(draft, template);
-    Command.call(openCommand.withArgs(draft.getAbsolutePath()));
+    Command.call(openCommand.appendArgs(draft.getAbsolutePath()));
   }
   
-  public static final Command openCommand = Command.byName("open");
+  public static final Command openCommand = Command.byName("open").withArgs("-t");
   
   public static final String DRAFTS_FOLDER_NAME = "templates";
 }
