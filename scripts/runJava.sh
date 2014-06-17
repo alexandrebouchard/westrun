@@ -15,12 +15,15 @@ done
   MAIN=$1
   shift 1
   ARGS=$@
-  
-  # Simple script to run the java program from the eclipse-generated .classpath file
-  REP_ROOT=$DIR/../
-  CLASSPATH=${REP_ROOT}/bin/:`cat ${REP_ROOT}/.classpath | grep jar | sed 's/.* path..//' | sed 's/\".*//' | tr "\n" ":"`
-  CLASSPATH=${CLASSPATH}:`cat ${REP_ROOT}/.classpath | grep combineaccessrules | sed "s#.* path..#${REP_ROOT}/..#" | sed 's#\".*#/bin/#' | tr "\n" ":"`
+  REP_ROOT="$(dirname "$DIR")"
+  # Simple script to run the java program from the eclipse-generated .classpath file (used for development)
 
-  java -Xmx2g -cp ${CLASSPATH} ${MAIN} ${ARGS}
+  #CLASSPATH=${REP_ROOT}/bin/:`cat ${REP_ROOT}/.classpath | grep jar | sed 's/.* path..//' | sed 's/\".*//' | tr "\n" ":"`
+  #CLASSPATH=${CLASSPATH}:`cat ${REP_ROOT}/.classpath | grep combineaccessrules | sed "s#.* path..#${REP_ROOT}/..#" | sed 's#\".*#/bin/#' | tr "\n" ":"`
+
+  # Use the output from gradle installApp
+  CLASSPATH=${REP_ROOT}/build/install/westrun/lib/\*
+
+  java -Xmx2g -cp "${CLASSPATH}" ${MAIN} ${ARGS}
 
 }
