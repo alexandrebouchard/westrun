@@ -52,7 +52,7 @@ public class RunBookmarkedCommand
     call(bash
           .withStandardOutMirroring()
           .ranIn(execDir)
-          .withArgs(bookmark.getAbsolutePath())
+          .withArg(bookmark.getAbsolutePath())
           .throwOnNonZeroReturnCode());
   }
   

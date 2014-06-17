@@ -48,7 +48,10 @@ public class Clean
       catch (Exception e) { throw new RuntimeException(e); }
       
       // create a link to the latest transferred
-      Command.call(Command.cmd("ln").withArgs("-s ../" + ExpRepoPath.CODE_TO_TRANSFER.getPathRelativeToExpRepoRoot() + " " + toDel));
+      Command.call(Command.cmd("ln")
+          .withArgs("-s")
+          .appendArg("../" + ExpRepoPath.CODE_TO_TRANSFER.getPathRelativeToExpRepoRoot())
+          .appendArg(toDel.toString()));
     }
     
     Sync.pushCodeTransferred(repo);

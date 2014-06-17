@@ -2,6 +2,7 @@ package westrun;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,7 +19,6 @@ import westrun.exprepo.ExpRepoPath;
 import westrun.exprepo.ExperimentsRepository;
 import westrun.template.CrossProductTemplate;
 import westrun.template.TemplateContext;
-import binc.Command;
 import briefj.BriefIO;
 import briefj.opt.InputFile;
 import briefj.opt.Option;
@@ -106,7 +106,7 @@ public class Launch implements Runnable
     launch(launchScripts);
     
     // move template to previous-template folder
-    if (!test && templateFile.getParent().equals(repo.resolveLocal(ExpRepoPath.TEMPLATE_DRAFTS)))
+    if (!test && templateFile.getParentFile().getAbsoluteFile().equals(repo.resolveLocal(ExpRepoPath.TEMPLATE_DRAFTS)))
     {
       File previousTemplateDir = repo.resolveLocal(ExpRepoPath.TEMPLATE_EXECUTED); 
       File destination = new File(previousTemplateDir, uniqueCodeRepoName());
@@ -178,7 +178,7 @@ public class Launch implements Runnable
     {
       System.out.println("Starting test. Mirrored output:");
       RemoteUtils.ssh
-        .withArgs(repo.sshRemoteHost + " /bin/bash -s")
+        .withArg(repo.sshRemoteHost).appendArgs("/bin/bash -s")
         .withStandardOutMirroring()
         .callWithInputStreamContents(Joiner.on("\n").join(commands));
     }
@@ -186,7 +186,12 @@ public class Launch implements Runnable
     {
       System.out.println("Submitting " + launchScripts.size() + " qsub jobs");
       String result = RemoteUtils.remoteBash(repo.sshRemoteHost, commands);
-      BriefIO.write(Results.getFileInResultFolder("qsubOutput"), result);
+      
+      PrintWriter out = BriefIO.output(Results.getFileInResultFolder("qsubOutput.map"));
+      String [] ids = result.split("\n");
+      for (int i = 0; i < ids.length; i++)
+        out.println("" + ids[i] + "\t" + execFolders.get(i));
+      out.close();
     }
   }
 
@@ -215,6 +220,7 @@ public class Launch implements Runnable
       
       // create an exec for the child
       String execFolderName = Results.nextRandomResultFolderName();
+      execFolders.add(execFolderName);
       File indivExec = (new File(new File(Results.getPoolFolder(), "all"), execFolderName));
       indivExec.mkdir();
       TemplateContext context = new TemplateContext(indivExec, codeRepo(), repo);
@@ -233,4 +239,6 @@ public class Launch implements Runnable
     }
     return result;
   }
+  
+  private List<String> execFolders = Lists.newArrayList();
 }
