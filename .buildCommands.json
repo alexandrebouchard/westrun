@@ -1,8 +1,0 @@
-{
-  "buildCommands": [
-    {
-      "commandName": "gradle",
-      "commandArguments": "--quiet installApp"
-    }
-  ]
-}
