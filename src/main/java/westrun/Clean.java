@@ -32,10 +32,6 @@ public class Clean
     
     Sync.pushLocalToRemote(repo);
     
-    // TODO: - erase contents of transferred code dir
-    //       - create a fresh one
-    //       - change the links in the results to point to the new copy
-    
     List<File> directoriesToDelete = Lists.newArrayList();
     for (File f : BriefFiles.ls(repo.resolveLocal(ExpRepoPath.CODE_TRANSFERRED)))
       if (f.isDirectory())
