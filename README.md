@@ -44,10 +44,10 @@ Sending an experiment to westgrid
 
 The main task to send an experiment is to create a *template*. A template is simply a script in which you can add special macros that are resolved into a cross product. 
 
-``cd -`` back to you experiments repository (note: all commands used in the rest of the tutorial can be invoke in any subdirectory of your experiments repository, not just the root). You can create an example of a draft template by typing ``wrun-template-draft``. This will create a draft execution in the folder ``templates``. You can rename this file  See the instructions and configurations in this file.
+``cd -`` back to you experiments repository (note: all commands used in the rest of the tutorial can be invoke in any subdirectory of your experiments repository, not just the root). You can create an example of a draft template by typing ``wrun-template-draft``. This will create a draft execution in the folder ``templates``. See the instructions and configurations in this file.
 
-Optionally, once the template is ready, you can test it via ``wrun-test -template path/to/template``, this will run on the server directly, bypassing qsub, running only the first item in the cross product and showing you the output dynamically so that you can see right away if the code can successfully start. **Kill (control-C) early** to avoid hugging server resources.
+Optionally, once the template is ready, you can test it via ``wrun-test -template path/to/templateDrafts``, this will run on the server directly, bypassing qsub, running only the first item in the cross product and showing you the output dynamically so that you can see right away if the code can successfully start. **Kill (control-C) early** to avoid hugging server resources.
 
-Finally, start your job using ``wrun-launch -template path/to/template -description Some description``.
+Finally, start your job using ``wrun-launch -template path/to/template -description Some description``. Run ``wrun-sync`` when you want to sync up the contents of the experiments repository with the remote (to see results of experiments).
 
 Once in a while, when no experiments are running, it is a good idea to run ``wrun-clean``, which will remove unnecessary files and save disk space.
