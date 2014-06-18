@@ -36,8 +36,14 @@ These two steps will create some configurations in ``.westrun`` and some basic d
 If you are using a compiled language such as java, you will need to specify how your code is to be built. 
 
 - Change directory to the root of your code repository
-- Type ``wrun-add-build-command``. (This simply creates a file called ``.buildcommands.json``, which defines a list of commands and arguments to execute; by default it contains gradle commands, but it can be modified to support build environments other than gradle.) Note that compilation is currently always done locally (i.e. before sending files off to server). You can use ``wrun-self-build`` from the root of the *code* repository to test your self-building script.
+- Type ``wrun-add-build-command``. (This simply creates a file called ``.buildcommands.json``, which defines a list of commands and arguments to execute; by default it contains gradle commands (see below), but it can be modified to support build environments other than gradle.) Note that compilation is currently always done locally (i.e. before sending files off to server). You can use ``wrun-self-build`` from the root of the *code* repository to test your self-building script.
 
+- *Gradle builds*: If the project is currently managed through gradle, the following lines must be added to the ```build.gradle``` file: 
+
+```
+apply plugin:'application'
+mainClassName = "[mainClass].Main"
+```
 
 Sending an experiment to westgrid
 ----------
