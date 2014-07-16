@@ -27,7 +27,7 @@ org.gradle.daemon=true
 ```
 To create ``~/.gradle/gradle.properties``, open terminal and add the following lines:
 ```
-touch ``~/.gradle/gradle.properties``
+touch ~/.gradle/gradle.properties
 ```
 
 
