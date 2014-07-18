@@ -108,7 +108,7 @@ public class Launch implements Runnable
     launch(launchScripts);
     
     // move template to previous-template folder
-    if (!test && templateFile.getParentFile().getAbsoluteFile().equals(repo.resolveLocal(ExpRepoPath.TEMPLATE_DRAFTS)))
+    if (!test && templateFile.getAbsoluteFile().getParentFile().getAbsoluteFile().equals(repo.resolveLocal(ExpRepoPath.TEMPLATE_DRAFTS)))
     {
       File previousTemplateDir = repo.resolveLocal(ExpRepoPath.TEMPLATE_EXECUTED); 
       File destination = new File(previousTemplateDir, uniqueCodeRepoName());
