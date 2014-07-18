@@ -17,11 +17,17 @@ Installation
 - Requires: Java 6+, POSIX, git, Gradle, rsync.
 - Setup a password-less connection to the remote host.
 - Clone this repo and compile using ``gradle installApp``.
-- Add the folder ``scripts`` to your PATH variable. 
+- Add the folder ``scripts`` to your PATH variable. If you use mac, you can use TextEdit to add it by adding the following line:
+  ``open -a TextEdit .bash_profile`` and copy this line ``export PATH=$PATH:/path/to/scripts`` to ``.bash_profile``.
+
 
 **Strongly recommended:** to speedup builds, create or (add to)  the file ``~/.gradle/gradle.properties`` and add the following line: 
 ```
 org.gradle.daemon=true
+```
+To create ``~/.gradle/gradle.properties``, open terminal and add the following lines:
+```
+touch ~/.gradle/gradle.properties
 ```
 
 
