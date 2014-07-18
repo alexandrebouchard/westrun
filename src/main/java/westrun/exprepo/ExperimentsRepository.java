@@ -47,7 +47,10 @@ public class ExperimentsRepository
 
   public static ExperimentsRepository fromWorkingDirParents()
   {
-    File configFile = new File(BriefFiles.findFileInParents(ExpRepoPath.CONFIG.getName()), ExpRepoPath.MAIN_CONFIG_FILE.getName()); ///CONFIG_DIR), MAIN_CONFIG_FILE);
+    File mainConf = BriefFiles.findFileInParents(ExpRepoPath.CONFIG.getName());
+    if (mainConf == null)
+      throw new RuntimeException("Make sure you run the command in an experiment repo (or a descendent directory of)");
+    File configFile = new File(mainConf, ExpRepoPath.MAIN_CONFIG_FILE.getName()); ///CONFIG_DIR), MAIN_CONFIG_FILE);
     ExperimentsRepoConfig config = ExperimentsRepoConfig.fromJSON(configFile);
     File localExpRepoRoot = configFile.getParentFile().getParentFile();
     return new ExperimentsRepository(config, localExpRepoRoot);

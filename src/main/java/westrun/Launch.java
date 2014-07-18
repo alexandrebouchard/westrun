@@ -59,6 +59,8 @@ public class Launch implements Runnable
   {
     repo = ExperimentsRepository.fromWorkingDirParents();
     
+    checkValidInputs();
+    
     // clone code repo
     if (repo.hasCodeRepository())
     {
@@ -115,6 +117,12 @@ public class Launch implements Runnable
     }
   }
   
+  private void checkValidInputs()
+  {
+    if (!templateFile.exists() || templateFile.isDirectory())
+      throw new RuntimeException("Template path not valid: " + templateFile.getAbsolutePath());
+  }
+
   private String uniqueCodeRepoName()
   {
     return Results.getResultFolder().getName().replace(".exec", "");
