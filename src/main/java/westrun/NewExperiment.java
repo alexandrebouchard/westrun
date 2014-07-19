@@ -22,7 +22,7 @@ public class NewExperiment
   		"draft, relative to westrun.examples in the resources.")
   public String templateInitialContentsResource = "java";
   
-  @Option(gloss = "Name for the new template. Inside ~ if left empty.")
+  @Option(gloss = "Name for the new template. Generated if left empty.")
   public String name = "";
   
   public static void main(String [] args)
