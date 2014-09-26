@@ -13,6 +13,7 @@ import briefj.BriefIO;
 import westrun.exprepo.ExpRepoPath;
 import westrun.exprepo.ExperimentsRepository;
 import westrun.exprepo.ExperimentsRepository.NotInExpRepoException;
+import westrun.exprepo.PermanentIndex;
 
 
 
@@ -51,6 +52,9 @@ public class Clean
             .withArgs("-s")
             .appendArg("../" + ExpRepoPath.CODE_TO_TRANSFER.getPathRelativeToExpRepoRoot())
             .appendArg(toDel.toString()));
+        
+        // delete the index file
+        PermanentIndex.getBDIndexFile(repo).delete();
       }
       
       Sync.pushCodeTransferred(repo);

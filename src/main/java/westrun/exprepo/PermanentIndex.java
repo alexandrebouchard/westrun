@@ -28,11 +28,26 @@ import static briefj.run.ExecutionInfoFiles.*;
 public class PermanentIndex
 {
   
+  public static File getBDIndexFile(ExperimentsRepository repo)
+  {
+    return new File(repo.localExpRepoRoot, "results/.options-index.db");
+  }
+  
+  public static class CorruptIndexException extends RuntimeException
+  {
+    private static final long serialVersionUID = 1L;
+
+    public CorruptIndexException()
+    {
+      super("Index out of date. Try wrun-clean");
+    }
+  }
+  
   public static Records getUpdatedIndex()
   {
     ExperimentsRepository repo = ExperimentsRepository.fromWorkingDirParents();
     
-    File database  = new File(repo.localExpRepoRoot, "results/.options-index.db");
+    File database = getBDIndexFile(repo);
     Records r = new Records(database);
     File resultsDirectory = new File(repo.localExpRepoRoot, "results/all");
     
@@ -52,10 +67,20 @@ public class PermanentIndex
       if (cachedPaths.contains(resultDirectory.getAbsolutePath()))
         continue loop;
       
-      System.out.println("Caching " + resultDirectory);
+      
       
       File optionsFile = new File(resultDirectory, repo.configuration.getOptionsLocation()); //ExecutionInfoFiles.getFile(ExecutionInfoFiles.OPTIONS_MAP, resultDirectory);
-      LinkedHashMap<String, String> keyValuePairs = OptionsParser.readOptionsFile(optionsFile);
+      LinkedHashMap<String, String> keyValuePairs = null;;
+      try
+      {
+        keyValuePairs = OptionsParser.readOptionsFile(optionsFile);
+      }
+      catch (Exception e)
+      {
+        continue loop;
+      }
+      
+      System.out.println("Caching " + resultDirectory);
       
       addFileContentsToKeyValuePairs(ExecutionInfoFiles.getFile(START_TIME_FILE, resultDirectory), keyValuePairs);
       addFileContentsToKeyValuePairs(ExecutionInfoFiles.getFile(REPOSITORY_INFO, resultDirectory), keyValuePairs);
