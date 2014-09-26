@@ -4,6 +4,7 @@ import java.io.File;
 
 import westrun.exprepo.ExpRepoPath;
 import westrun.exprepo.ExperimentsRepository;
+import westrun.exprepo.ExperimentsRepository.NotInExpRepoException;
 
 import binc.Command;
 import briefj.BriefIO;
@@ -18,7 +19,15 @@ public class Sync
   
   public static void main(String [] args)
   {
-    sync(ExperimentsRepository.fromWorkingDirParents());
+    try
+    {
+      sync(ExperimentsRepository.fromWorkingDirParents());
+    }
+    catch (NotInExpRepoException niere)
+    {
+      System.err.println(niere.getMessage());
+    }
+    
   }
   
   public static void sync(ExperimentsRepository repo)
@@ -71,7 +80,7 @@ public class Sync
     
     result = result.appendArgs("--update") // skip files that are newer on the receiver" +
                    .appendArgs("--recursive")
-                   .appendArgs("--links")
+//                   .appendArgs("--links")
                    .appendArgs("--perms")
                    .appendArgs("--group")
                    .appendArgs("--executability")
@@ -100,7 +109,10 @@ public class Sync
     StringBuilder exclude = new StringBuilder();
     
     for (ExpRepoPath path : ExpRepoPath.values())
-      exclude.append("/" + path.getPathRelativeToExpRepoRoot() + "\n");
+      if (path != ExpRepoPath.PLANS) // do transfer the plans (they contain the scripts)
+        exclude.append("/" + path.getPathRelativeToExpRepoRoot() + "\n");
+    
+//    exclude.append("/*/latest");
     
     BriefIO.write(repo.resolveLocal(ExpRepoPath.IGNORE_FILE), exclude);
   }

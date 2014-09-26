@@ -1,5 +1,8 @@
 package westrun;
 
+import static binc.Command.call;
+import static briefj.run.Commands.ln;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -9,14 +12,12 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.TransportException;
 import org.mvel2.templates.TemplateRuntime;
 
 import westrun.code.SelfBuiltRepository;
 import westrun.exprepo.ExpRepoPath;
 import westrun.exprepo.ExperimentsRepository;
+import westrun.exprepo.ExperimentsRepository.NotInExpRepoException;
 import westrun.template.CrossProductTemplate;
 import westrun.template.TemplateContext;
 import briefj.BriefIO;
@@ -24,11 +25,13 @@ import briefj.opt.InputFile;
 import briefj.opt.Option;
 import briefj.repo.GitRepository;
 import briefj.run.Mains;
+import briefj.run.OptionsUtils;
+import briefj.run.OptionsUtils.InvalidOptionsException;
 import briefj.run.Results;
 import briefj.unix.RemoteUtils;
 
-import com.beust.jcommander.internal.Lists;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 
 
 
@@ -107,14 +110,14 @@ public class Launch implements Runnable
     // run the commands (Later: collect the id?)
     launch(launchScripts);
     
-    // move template to previous-template folder
-    if (!test && templateFile.getAbsoluteFile().getParentFile().getAbsoluteFile().equals(repo.resolveLocal(ExpRepoPath.TEMPLATE_DRAFTS)))
-    {
-      File previousTemplateDir = repo.resolveLocal(ExpRepoPath.TEMPLATE_EXECUTED); 
-      File destination = new File(previousTemplateDir, uniqueCodeRepoName());
-      templateFile.renameTo(destination);
-      System.out.println("Executed template file moved to " + destination.getAbsolutePath());
-    }
+//    // move template to previous-template folder
+//    if (!test && templateFile.getAbsoluteFile().getParentFile().getAbsoluteFile().equals(repo.resolveLocal(ExpRepoPath.TEMPLATE_DRAFTS)))
+//    {
+//      File previousTemplateDir = repo.resolveLocal(ExpRepoPath.TEMPLATE_EXECUTED); 
+//      File destination = new File(previousTemplateDir, uniqueCodeRepoName());
+//      templateFile.renameTo(destination);
+//      System.out.println("Executed template file moved to " + destination.getAbsolutePath());
+//    }
   }
   
   private void checkValidInputs()
@@ -136,9 +139,31 @@ public class Launch implements Runnable
       return null;
   }
   
-  public static void main(String [] args) throws InvalidRemoteException, TransportException, GitAPIException
+  public static void main(String [] args) 
   {
-    Mains.instrumentedRun(args, new Launch());
+    try
+    {
+      // find the name of the plan
+      Launch launch = new Launch();
+      OptionsUtils.parseOptions(args, launch);
+      
+      // set the exec to be adjacent to the plan, with prefix -results
+      File planResults = new File(launch.templateFile.getAbsolutePath() + "-results");
+      Results.setResultsFolder(planResults);
+      
+      Mains.instrumentedRun(args, new Launch());
+    }
+    catch (InvalidOptionsException ioe)
+    {
+    }
+    catch (CodeDirtyException ce)
+    {
+      System.err.println(ce.getMessage());
+    }
+    catch (NotInExpRepoException niere)
+    {
+      System.err.println(niere.getMessage());
+    }
   }
 
   private File cloneRepository()
@@ -150,7 +175,7 @@ public class Launch implements Runnable
     
     List<File> dirtyFile = gitRepo.dirtyFiles();
     if (!tolerateDirtyCode && !dirtyFile.isEmpty())
-      throw new RuntimeException("There are dirty files in the repository (use -tolerateDirtyCode to bypass):\n" + Joiner.on("\n").join(dirtyFile));
+      throw new CodeDirtyException(dirtyFile);
     
     File destination = repo.resolveLocal(ExpRepoPath.CODE_TO_TRANSFER); //new File(repo.root(), CODE_TO_TRANSFER); //Results.getFolderInResultFolder("code");
     try { FileUtils.deleteDirectory(destination); } 
@@ -170,6 +195,16 @@ public class Launch implements Runnable
     
     return destination;
   }
+  
+  public static class CodeDirtyException extends RuntimeException
+  {
+    private static final long serialVersionUID = 1L;
+
+    public CodeDirtyException(List<File> dirtyFile)
+    {
+      super("There are dirty files in the repository (use -tolerateDirtyCode to bypass): " + Joiner.on("\n").join(dirtyFile));
+    }
+  }
 
   private void launch(List<File> launchScripts)
   {
@@ -180,7 +215,7 @@ public class Launch implements Runnable
     commands.add("cd " + repo.remoteExpRepoRoot); 
     
     for (File launchScript : launchScripts)
-      commands.add(remoteLaunchCommand + " " + launchScript);
+      commands.add(remoteLaunchCommand + " " + relativize(launchScript));
     
     if (test) 
     {
@@ -201,6 +236,18 @@ public class Launch implements Runnable
         out.println("" + ids[i] + "\t" + execFolders.get(i));
       out.close();
     }
+    
+    File softlinks = Results.getFolderInResultFolder("job-results");
+    int i = 0;
+    for (String resultFolder : execFolders)
+      call(ln.ranIn(softlinks).withArgs("-s").appendArg(repo.localExpRepoRoot + "/results/all/" + resultFolder).appendArg("job-" + i));
+
+  }
+
+  private File relativize(File launchScript)
+  {
+    String repoRoot = repo.localExpRepoRoot.getAbsolutePath();
+    return new File(repo.remoteExpRepoRoot, launchScript.getAbsolutePath().substring(repoRoot.length()));
   }
 
   /**
@@ -221,6 +268,7 @@ public class Launch implements Runnable
     List<String> expansions = CrossProductTemplate.expandTemplate(templateContents);
     File scripts = Results.getFolderInResultFolder("launchScripts");
     
+    
     List<File> result = Lists.newArrayList();
     loop:for (int i = 0; i < expansions.size(); i++)
     {
@@ -229,7 +277,7 @@ public class Launch implements Runnable
       // create an exec for the child
       String execFolderName = Results.nextRandomResultFolderName();
       execFolders.add(execFolderName);
-      File indivExec = (new File(new File(Results.getPoolFolder(), "all"), execFolderName));
+      File indivExec = (new File(Results.DEFAULT_POOL_NAME + "/" + Results.DEFAULT_ALL_NAME, execFolderName));
       indivExec.mkdir();
       TemplateContext context = new TemplateContext(indivExec, codeRepo(), repo);
       

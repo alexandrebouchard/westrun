@@ -4,6 +4,7 @@ package westrun.exprepo;
 import java.util.Arrays;
 
 import westrun.Sync;
+import briefj.run.OptionsUtils.InvalidOptionsException;
 import briefj.unix.RemoteUtils;
 
 
@@ -12,12 +13,16 @@ public class SetupExperimentsRepo
 {
   public static void main(String [] args)
   {
-    ExperimentsRepository repo = ExperimentsRepository.fromCommandLineArguments(args);
-    createAllLocalDirs(repo);
-    repo.configuration.toJSON(repo.resolveLocal(ExpRepoPath.MAIN_CONFIG_FILE));
-    Sync.createExcludeList(repo);
-    createRemoteExpRepo(repo);
-    Sync.sync(repo);
+    try
+    {
+      ExperimentsRepository repo = ExperimentsRepository.fromCommandLineArguments(args);
+      createAllLocalDirs(repo);
+      repo.configuration.toJSON(repo.resolveLocal(ExpRepoPath.MAIN_CONFIG_FILE));
+      Sync.createExcludeList(repo);
+      createRemoteExpRepo(repo);
+      Sync.sync(repo);
+    }
+    catch (InvalidOptionsException ioe) {}
   }
   
   private static void createAllLocalDirs(ExperimentsRepository repo)

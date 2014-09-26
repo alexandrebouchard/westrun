@@ -12,6 +12,7 @@ import briefj.BriefFiles;
 import briefj.BriefIO;
 import westrun.exprepo.ExpRepoPath;
 import westrun.exprepo.ExperimentsRepository;
+import westrun.exprepo.ExperimentsRepository.NotInExpRepoException;
 
 
 
@@ -19,37 +20,44 @@ public class Clean
 {
   public static void main(String [] args)
   {
-    ExperimentsRepository repo = ExperimentsRepository.fromWorkingDirParents();
-    
-    // TODO: detect if remote jobs are running
-    
-    System.out.println("Clean should not be used if remote jobs are running.");
-    System.out.println("Also avoid cleaning if you did or plan to change the code repo.");
-    String answer = BriefIO.prompt("Confirm (y/n)");
-    
-    if (!"y".equals(answer))
-      System.exit(1);
-    
-    Sync.pushLocalToRemote(repo);
-    
-    List<File> directoriesToDelete = Lists.newArrayList();
-    for (File f : BriefFiles.ls(repo.resolveLocal(ExpRepoPath.CODE_TRANSFERRED)))
-      if (f.isDirectory())
-        directoriesToDelete.add(f);
-    
-    for (File toDel : directoriesToDelete)
+    try
     {
-      // delete
-      try { FileUtils.deleteDirectory(toDel); }
-      catch (Exception e) { throw new RuntimeException(e); }
+      ExperimentsRepository repo = ExperimentsRepository.fromWorkingDirParents();
       
-      // create a link to the latest transferred
-      Command.call(Command.cmd("ln")
-          .withArgs("-s")
-          .appendArg("../" + ExpRepoPath.CODE_TO_TRANSFER.getPathRelativeToExpRepoRoot())
-          .appendArg(toDel.toString()));
+      // TODO: detect if remote jobs are running
+      
+      System.out.println("Clean should not be used if remote jobs are running.");
+      System.out.println("Also avoid cleaning if you did or plan to change the code repo.");
+      String answer = BriefIO.prompt("Confirm (y/n)");
+      
+      if (!"y".equals(answer))
+        System.exit(1);
+      
+      Sync.pushLocalToRemote(repo);
+      
+      List<File> directoriesToDelete = Lists.newArrayList();
+      for (File f : BriefFiles.ls(repo.resolveLocal(ExpRepoPath.CODE_TRANSFERRED)))
+        if (f.isDirectory())
+          directoriesToDelete.add(f);
+      
+      for (File toDel : directoriesToDelete)
+      {
+        // delete
+        try { FileUtils.deleteDirectory(toDel); }
+        catch (Exception e) { throw new RuntimeException(e); }
+        
+        // create a link to the latest transferred
+        Command.call(Command.cmd("ln")
+            .withArgs("-s")
+            .appendArg("../" + ExpRepoPath.CODE_TO_TRANSFER.getPathRelativeToExpRepoRoot())
+            .appendArg(toDel.toString()));
+      }
+      
+      Sync.pushCodeTransferred(repo);
     }
-    
-    Sync.pushCodeTransferred(repo);
+    catch (NotInExpRepoException niere)
+    {
+      System.err.println(niere.getMessage());
+    }
   }
 }

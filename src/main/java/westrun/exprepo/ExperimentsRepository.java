@@ -44,12 +44,22 @@ public class ExperimentsRepository
     this.localCodeRepoRoot = StringUtils.isEmpty(config.codeRepository) ? null : new File(config.codeRepository);
     this.configuration = config;
   }
+  
+  public static class NotInExpRepoException extends RuntimeException
+  {
+    private static final long serialVersionUID = 1L;
+    
+    public NotInExpRepoException()
+    {
+      super("Make sure you run the command in an experiment repo (or a descendent directory of)");
+    }
+  }
 
   public static ExperimentsRepository fromWorkingDirParents()
   {
     File mainConf = BriefFiles.findFileInParents(ExpRepoPath.CONFIG.getName());
     if (mainConf == null)
-      throw new RuntimeException("Make sure you run the command in an experiment repo (or a descendent directory of)");
+      throw new NotInExpRepoException();
     File configFile = new File(mainConf, ExpRepoPath.MAIN_CONFIG_FILE.getName()); ///CONFIG_DIR), MAIN_CONFIG_FILE);
     ExperimentsRepoConfig config = ExperimentsRepoConfig.fromJSON(configFile);
     File localExpRepoRoot = configFile.getParentFile().getParentFile();

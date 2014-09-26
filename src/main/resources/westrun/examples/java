@@ -16,7 +16,7 @@
 # - add any executables that java might call in the path below
 # - use wrun-launch or wrun-test
 
-export PATH=~/mrbayes-3.1.2/mb:$PATH
+export PATH=~/mrbayes-3.1.2/mb:/global/software/R-3.1.0-rh6/bin/:$PATH
 
 # this informs briefj.run.Results to write results in the directory created
 # by the westrun launcher

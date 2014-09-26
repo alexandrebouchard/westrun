@@ -3,8 +3,10 @@ package westrun.exprepo;
 import java.io.File;
 
 
+
 import briefj.BriefIO;
 import briefj.opt.Option;
+import briefj.run.ExecutionInfoFiles;
 
 
 /**
@@ -37,6 +39,9 @@ public class ExperimentsRepoConfig
   @Option(gloss = "Absolute path to a git code repository.")
   public String codeRepository = "";
   
+  @Option(gloss = "Path relative to each .exec where tab-separated options (one per line), are stored (used to index runs).")
+  public String optionsLocation = "";
+  
   public static ExperimentsRepoConfig fromJSON(File configFile)
   {
     return BriefIO.createGson().fromJson(BriefIO.fileToString(configFile), ExperimentsRepoConfig.class);
@@ -45,5 +50,13 @@ public class ExperimentsRepoConfig
   public void toJSON(File configFile)
   {
     BriefIO.write(configFile, BriefIO.createGson().toJson(this));
+  }
+  
+  public String getOptionsLocation()
+  {
+    if (optionsLocation == null || optionsLocation.isEmpty())
+      return ExecutionInfoFiles.infoFileDirectoryName + "/" + ExecutionInfoFiles.OPTIONS_MAP;
+    else
+      return optionsLocation;
   }
 }
