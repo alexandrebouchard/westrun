@@ -2,20 +2,17 @@ package westrun;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.apache.commons.lang3.StringUtils;
 
+import westrun.exprepo.ExperimentsRepository;
+import westrun.exprepo.ExperimentsRepository.NotInExpRepoException;
+import westrun.exprepo.PermanentIndex;
+import westrun.exprepo.PermanentIndex.CorruptIndexException;
 import briefj.db.Records;
 import briefj.opt.Option;
-import briefj.run.Mains;
 import briefj.run.OptionsUtils;
 import briefj.run.OptionsUtils.InvalidOptionsException;
-import westrun.exprepo.ExperimentsRepository;
-import westrun.exprepo.PermanentIndex;
-import westrun.exprepo.ExperimentsRepository.NotInExpRepoException;
-import westrun.exprepo.PermanentIndex.CorruptIndexException;
 
 
 
