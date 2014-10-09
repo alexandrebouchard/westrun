@@ -1,4 +1,5 @@
-Summary
+Summary [![Build Status](https://travis-ci.org/alexandrebouchard/westrun.png?branch=master)](https://travis-ci.org/alexandrebouchard/westrun)
+
 -------
 
 Westrun contains utilities to start jobs on westgrid (in particular, java jobs, but could be useful for other types of jobs as well). It could also be useful in other 
