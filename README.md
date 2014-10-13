@@ -15,7 +15,7 @@ code repository). From within each of these experiments repo, you can:
 Installation
 ------------
 
-- Requires: Java 6+, POSIX, git, Gradle, rsync.
+- Requires: Java 8+, POSIX, git, Gradle 2.1+, rsync.
 - Setup a password-less connection to the remote host.
 - Clone this repo and compile using ``gradle installApp``.
 - Add the folder ``scripts`` to your PATH variable. If you use mac, you can use TextEdit to add it by adding the following line:
@@ -63,7 +63,7 @@ The main task to send an experiment is to create a *template*. A template is sim
 
 Optionally, once the template is ready, you can test it via ``wrun-test -template path/to/templateDrafts``, this will run on the server directly, bypassing qsub, running only the first item in the cross product and showing you the output dynamically so that you can see right away if the code can successfully start. **Kill (control-C) early** to avoid hugging server resources.
 
-Finally, start your job using ``wrun-launch -template path/to/template -description Some description``. 
+Finally, start your job using ``wrun-launch -template path/to/template -description Some description``. Note that this creates copies of your source code, so feel free to keep editing the source code while the code is running on server (more precisely, as soon as the command wrun-launch is completed).
 
 
 Getting results back
