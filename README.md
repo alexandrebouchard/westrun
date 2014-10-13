@@ -49,8 +49,10 @@ If you are using a compiled language such as java, you will need to specify how 
 
 ```
 apply plugin:'application'
-mainClassName = "[mainClass].Main"
+mainClassName = "package.MainClass"
 ```
+
+where ideally you should replace ``package.MainClass`` by a fully qualified name to the main java class point of entry of your program, but this is not strictly mandatory (this is just used to force gradle to download all the dependencies, you can still launch class files other than the one specified here).
 
 Sending an experiment to westgrid
 ---------------------------------
