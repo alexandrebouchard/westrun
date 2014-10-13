@@ -71,9 +71,9 @@ Getting results back
 
 Run ``wrun-sync`` when you want to sync up the contents of the experiments repository with the remote (to see results of experiments).
 
-All the results are stored in ``results``. However, a more convenient way to access them is to look at ``plans/[name-of-plan]-results/latest/job-results/``, which will contain symlinks to the individual workers' result folders. You can also find in ``plans/[name-of-plan]-results/latest/executionInfo/inputs/templateFile`` a copy of the template used to launch this job (in general, westrun is organized so that you do not have to version control the experiments directory: things are saved and organized for you).
+All the results are stored in ``results``. However, a more convenient way to access them is to look at ``plans/[name-of-plan]-results/latest/job-results/``, which will contain symlinks to the individual workers' result folders. You can also find in ``plans/[name-of-plan]-results/latest/executionInfo/inputs/templateFile`` a copy of the template used to launch this job (in general, westrun is organized so that you do not necessarily have to version control the experiments directory: things are saved and organized for you).
 
-Once in a while, when no experiments are running, it is a good idea to run ``wrun-clean``, which will remove unnecessary files and save disk space.
+Once in a while, when no experiments are running, it is a good idea to erase unnecessary result directories and then run ``wrun-clean``, which will push these deletions to the server.
 
 
 Appendix
