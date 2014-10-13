@@ -240,7 +240,7 @@ public class Launch implements Runnable
     File softlinks = Results.getFolderInResultFolder("job-results");
     int i = 0;
     for (String resultFolder : execFolders)
-      call(ln.ranIn(softlinks).withArgs("-s").appendArg(repo.localExpRepoRoot + "/results/all/" + resultFolder).appendArg("job-" + i));
+      call(ln.ranIn(softlinks).withArgs("-s").appendArg(repo.localExpRepoRoot + "/results/all/" + resultFolder).appendArg("job-" + (i++)));
 
   }
 
