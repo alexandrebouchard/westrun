@@ -60,8 +60,11 @@ public class Search implements Runnable
   private void showColumns()
   {
     Records records = PermanentIndex.getUpdatedIndex();
-    
+    List<String> columns = new ArrayList<>();
     for (String columnName : records.getCurrentCols())
+      columns.add(columnName);
+    Collections.sort(columns);
+    for (String columnName : columns)
       System.out.println(columnName);
   }
   
