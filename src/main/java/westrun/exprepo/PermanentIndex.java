@@ -107,12 +107,14 @@ public class PermanentIndex
   
   public static void addSimpleFileContentsToKeyValuePairs(File file, LinkedHashMap<String, String> keyValuePairs)
   {
-    keyValuePairs.put(getNameNoExtension(file), BriefIO.fileToString(file));
+    if (file.exists())
+      keyValuePairs.put(getNameNoExtension(file), BriefIO.fileToString(file));
   }
   
   public static void addMapFileToKeyValuePairs(File file, LinkedHashMap<String, String> keyValuePairs)
   {
-    keyValuePairs.putAll(OptionsParser.readOptionsFile(file));
+    if (file.exists())
+      keyValuePairs.putAll(OptionsParser.readOptionsFile(file));
   }
   
   public static String getNameNoExtension(File file)
