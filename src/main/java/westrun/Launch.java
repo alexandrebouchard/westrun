@@ -18,12 +18,14 @@ import westrun.code.SelfBuiltRepository;
 import westrun.exprepo.ExpRepoPath;
 import westrun.exprepo.ExperimentsRepository;
 import westrun.exprepo.ExperimentsRepository.NotInExpRepoException;
+import westrun.exprepo.PermanentIndex;
 import westrun.template.CrossProductTemplate;
 import westrun.template.TemplateContext;
 import briefj.BriefIO;
 import briefj.opt.InputFile;
 import briefj.opt.Option;
 import briefj.repo.GitRepository;
+import briefj.run.ExecutionInfoFiles;
 import briefj.run.Mains;
 import briefj.run.OptionsUtils;
 import briefj.run.OptionsUtils.InvalidOptionsException;
@@ -148,7 +150,7 @@ public class Launch implements Runnable
       OptionsUtils.parseOptions(args, launch);
       
       // set the exec to be adjacent to the plan, with prefix -results
-      File planResults = new File(launch.templateFile.getAbsolutePath() + "-results");
+      File planResults = new File(launch.templateFile.getParentFile(), PermanentIndex.getNameNoExtension(launch.templateFile) + "-results");
       Results.setResultsFolder(planResults);
       
       Mains.instrumentedRun(args, new Launch());
@@ -177,7 +179,7 @@ public class Launch implements Runnable
     if (!tolerateDirtyCode && !dirtyFile.isEmpty())
       throw new CodeDirtyException(dirtyFile);
     
-    File destination = repo.resolveLocal(ExpRepoPath.CODE_TO_TRANSFER); //new File(repo.root(), CODE_TO_TRANSFER); //Results.getFolderInResultFolder("code");
+    File destination = repo.resolveLocal(ExpRepoPath.CODE_TO_TRANSFER); 
     try { FileUtils.deleteDirectory(destination); } 
     catch (IOException e) { throw new RuntimeException(e); }
     
@@ -275,10 +277,8 @@ public class Launch implements Runnable
       String expansion = expansions.get(i);
       
       // create an exec for the child
-      String execFolderName = Results.nextRandomResultFolderName();
-      execFolders.add(execFolderName);
-      File indivExec = (new File(Results.DEFAULT_POOL_NAME + "/" + Results.DEFAULT_ALL_NAME, execFolderName));
-      indivExec.mkdir();
+      File indivExec = prepareNextChildExec(); 
+      
       TemplateContext context = new TemplateContext(indivExec, codeRepo(), repo);
       
       // interpret the template language
@@ -296,5 +296,18 @@ public class Launch implements Runnable
     return result;
   }
   
+  public static final String PLAN_TAG_NAME = "plan.txt";
+  
+  private File prepareNextChildExec()
+  {
+    String execFolderName = Results.nextRandomResultFolderName();
+    execFolders.add(execFolderName);
+    File result = (new File(Results.DEFAULT_POOL_NAME + "/" + Results.DEFAULT_ALL_NAME, execFolderName));
+    result.mkdir();
+    File planFile = ExecutionInfoFiles.getFile(PLAN_TAG_NAME, result);
+    BriefIO.write(planFile, PermanentIndex.getNameNoExtension(templateFile));
+    return result;
+  }
+
   private List<String> execFolders = Lists.newArrayList();
 }

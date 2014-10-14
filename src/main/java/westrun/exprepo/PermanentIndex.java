@@ -4,15 +4,17 @@ import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
+import westrun.Launch;
+
 import com.google.common.collect.Sets;
 
 import briefj.BriefFiles;
 import briefj.BriefIO;
+import briefj.BriefLog;
 import briefj.db.Records;
 import briefj.opt.OptionsParser;
 import briefj.repo.GitRepository;
 import briefj.run.ExecutionInfoFiles;
-
 import static briefj.run.ExecutionInfoFiles.*;
 
 /**
@@ -67,8 +69,6 @@ public class PermanentIndex
       if (cachedPaths.contains(resultDirectory.getAbsolutePath()))
         continue loop;
       
-      
-      
       File optionsFile = new File(resultDirectory, repo.configuration.getOptionsLocation()); //ExecutionInfoFiles.getFile(ExecutionInfoFiles.OPTIONS_MAP, resultDirectory);
       LinkedHashMap<String, String> keyValuePairs = null;;
       try
@@ -82,18 +82,19 @@ public class PermanentIndex
       
       System.out.println("Caching " + resultDirectory);
       
-      addFileContentsToKeyValuePairs(ExecutionInfoFiles.getFile(START_TIME_FILE, resultDirectory), keyValuePairs);
-      addFileContentsToKeyValuePairs(ExecutionInfoFiles.getFile(REPOSITORY_INFO, resultDirectory), keyValuePairs);
+      addSimpleFileContentsToKeyValuePairs(ExecutionInfoFiles.getFile(START_TIME_FILE, resultDirectory), keyValuePairs);
+      addSimpleFileContentsToKeyValuePairs(ExecutionInfoFiles.getFile(Launch.PLAN_TAG_NAME, resultDirectory), keyValuePairs);
+      addMapFileToKeyValuePairs(ExecutionInfoFiles.getFile(REPOSITORY_INFO, resultDirectory), keyValuePairs);
       boolean codeDirty = (ExecutionInfoFiles.getFile(REPOSITORY_DIRTY_FILES, resultDirectory).exists());
       keyValuePairs.put(DIRTY_FILE_COLUMN_NAME, "" + codeDirty);
       
       try
       { 
-        long commitTime = GitRepository.fromLocal(repo.localCodeRepoRoot).commitTime(keyValuePairs.get("commit"));
+        long commitTime = GitRepository.fromLocal(repo.localCodeRepoRoot).commitTime(keyValuePairs.get("git_commit"));
         keyValuePairs.put("git_commit_time", "" + commitTime);
       } catch (Exception e)
       {
-        
+        BriefLog.warnOnce("Warning: could not determine some commit time(s)");
       }
       
       r.recordFullRun(keyValuePairs, resultDirectory);
@@ -104,24 +105,17 @@ public class PermanentIndex
   
   public static String DIRTY_FILE_COLUMN_NAME = "dirty_files";
   
-  public static void addFileContentsToKeyValuePairs(File file, LinkedHashMap<String, String> keyValuePairs)
+  public static void addSimpleFileContentsToKeyValuePairs(File file, LinkedHashMap<String, String> keyValuePairs)
   {
-    int nLines = 0;
-    loop:for (String line : BriefIO.readLines(file))
-      if (!line.isEmpty())
-      {
-        nLines++;
-        if (nLines > 1)
-          break loop;
-      }
-    if (nLines < 2)
-      keyValuePairs.put(getNameNoExtension(file), BriefIO.fileToString(file));
-    else
-      keyValuePairs.putAll(OptionsParser.readOptionsFile(file));
-      
+    keyValuePairs.put(getNameNoExtension(file), BriefIO.fileToString(file));
   }
   
-  private static String getNameNoExtension(File file)
+  public static void addMapFileToKeyValuePairs(File file, LinkedHashMap<String, String> keyValuePairs)
+  {
+    keyValuePairs.putAll(OptionsParser.readOptionsFile(file));
+  }
+  
+  public static String getNameNoExtension(File file)
   {
     return file.getName().replaceAll("[.].*", "");
   }
