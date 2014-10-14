@@ -2,17 +2,15 @@ package westrun;
 
 import java.io.File;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-
-import com.google.common.base.Joiner;
 
 import westrun.exprepo.PermanentIndex;
 import briefj.BriefIO;
@@ -69,8 +67,10 @@ public class Collect implements Runnable
       while (results.next())
       {
         LinkedHashMap<String,String> globalKeyValuePairs = new LinkedHashMap<>();
-        for (String colName : select.split("\\s*,\\s*"))
-          globalKeyValuePairs.put(colName, results.getString(colName));
+//        for (String colName : select.split("\\s*,\\s*"))
+        ResultSetMetaData metaData = results.getMetaData();
+        for (int i = 0; i < metaData.getColumnCount(); i++)
+          globalKeyValuePairs.put(metaData.getColumnName(i+1), results.getString(metaData.getColumnName(i+1)));
         File directory = new File(results.getString(Records.FOLDER_LOCATION_COLUMN));
         for (String mapFileName : mapFiles)
         {

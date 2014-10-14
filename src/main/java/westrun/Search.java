@@ -1,6 +1,7 @@
 package westrun;
 
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,8 +54,9 @@ public class Search implements Runnable
       {
         while (results.next())
         {
-          for (String colName : select.split("\\s*,\\s*"))
-            System.out.print(results.getString(colName) + "\t");
+          ResultSetMetaData metaData = results.getMetaData();
+          for (int i = 0; i < metaData.getColumnCount(); i++)
+            System.out.print(results.getString(metaData.getColumnName(i+1)) + "\t");
           System.out.println();
         }
       } 

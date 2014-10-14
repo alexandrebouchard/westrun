@@ -1,6 +1,9 @@
 package westrun.exprepo;
 
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
@@ -90,8 +93,11 @@ public class PermanentIndex
       
       try
       { 
-        long commitTime = GitRepository.fromLocal(repo.localCodeRepoRoot).commitTime(keyValuePairs.get("git_commit"));
-        keyValuePairs.put("git_commit_time", "" + commitTime);
+        long commitTimeUnixEpochSec = GitRepository.fromLocal(repo.localCodeRepoRoot).commitTime(keyValuePairs.get("git_commit"));
+        Date date = new Date(commitTimeUnixEpochSec);
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
+        String formatted = format.format(date);
+        keyValuePairs.put("git_commit_time", "" + formatted);
       } catch (Exception e)
       {
         BriefLog.warnOnce("Warning: could not determine some commit time(s)");
