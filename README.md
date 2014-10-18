@@ -100,7 +100,7 @@ Note that ``wrun-search`` can only use the part of the execution that does not c
 Here is an example:
 
 ```
--select method,plan -constraints "plan = 'myPlan'" -csvFile results.csv -print method,iteration,accuracy
+wrun-collect -select method,plan -constraints "plan = 'myPlan'" -csvFile results.csv -print method,iteration,accuracy
 ```
 
 This will loop over the results folders produced by the plan ``myPlan``, and for each of these, loop over rows in ``results.csv``, and add to the output database the columns ``iteration`` and ``accuracy``, as well as the value of the option ``method`` specified in the option of the current result folder.
@@ -109,7 +109,7 @@ This will print the result to the standard out, to output instead an sqlite data
 
 Also, in addition to csv files, the following files can be handled in each result directory:
 
-- ``mapFile``: tab separated key values, one per line.
-- ``simpleFiles``: a file where the key is the file name (extension-stripped), and the value is the contents.
+- ``-mapFile``: tab separated key values, one per line.
+- ``-simpleFiles``: a file where the key is the file name (extension-stripped), and the value is the contents.
 
 
