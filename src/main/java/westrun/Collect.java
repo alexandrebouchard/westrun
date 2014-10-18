@@ -17,7 +17,9 @@ import briefj.BriefIO;
 import briefj.BriefLog;
 import briefj.db.Records;
 import briefj.opt.Option;
+import briefj.run.Mains;
 import briefj.run.OptionsUtils;
+import briefj.run.Results;
 
 
 /**
@@ -45,9 +47,9 @@ public class Collect implements Runnable
   @Option(gloss = "A simple file is a file where the key is the file name (extension-stripped), and the value is the contents")
   public ArrayList<String> simpleFiles = new ArrayList<>();
   
-  @Option(gloss = "Database to output to, otherwise, the result is printed to standard out.")
-  public File outputDatabase = null;
-
+  @Option(gloss = "If true, return output to standard out, if false, write results to a unique execution directory (and only print out the path of that exec dir)")
+  public boolean interactive = true;
+  
   private Records output;
   private LinkedHashSet<String> printSet;
 
@@ -57,7 +59,7 @@ public class Collect implements Runnable
     if (!select.contains(Records.FOLDER_LOCATION_COLUMN))
       select = select + "," + Records.FOLDER_LOCATION_COLUMN;
     
-    output = outputDatabase == null ? null : new Records(outputDatabase);
+    output = interactive ? null : new Records(Results.getFileInResultFolder("db.sqlite"));
     printSet = new LinkedHashSet<String>(Arrays.asList(print.split("\\s*,\\s*")));
     
     Records records = PermanentIndex.getUpdatedIndex();
@@ -131,7 +133,10 @@ public class Collect implements Runnable
     {
       Collect collect = new Collect();
       OptionsUtils.parseOptions(args, collect);
-      collect.run();
+      if (collect.interactive)
+        collect.run();
+      else 
+        Mains.instrumentedRun(args, collect);
     }
     catch (Exception e)
     {
