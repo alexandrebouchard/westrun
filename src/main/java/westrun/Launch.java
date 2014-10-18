@@ -239,11 +239,19 @@ public class Launch implements Runnable
       out.close();
     }
     
+    // link back and forth
     File softlinks = Results.getFolderInResultFolder("job-results");
     int i = 0;
     for (String resultFolder : execFolders)
-      call(ln.ranIn(softlinks).withArgs("-s").appendArg(repo.localExpRepoRoot + "/results/all/" + resultFolder).appendArg("job-" + (i++)));
-
+    {
+      // create softlink from launching job to children exec
+      File resolvedChildrenExecFolder = new File(repo.localExpRepoRoot + "/" + Results.DEFAULT_POOL_NAME + "/" + Results.DEFAULT_ALL_NAME + "/" + resultFolder);
+      call(ln.ranIn(softlinks).withArgs("-s").appendArg(resolvedChildrenExecFolder.toString()).appendArg("job-" + (i++)));
+      
+      // tag the children exec
+      File planFile = ExecutionInfoFiles.getFile(PLAN_TAG_NAME, resolvedChildrenExecFolder);
+      BriefIO.write(planFile, PermanentIndex.getNameNoExtension(templateFile));
+    }
   }
 
   private File relativize(File launchScript)
@@ -298,14 +306,15 @@ public class Launch implements Runnable
   
   public static final String PLAN_TAG_NAME = "plan.txt";
   
+  /**
+   * Prepare the next children exec dir, and return its path relative to the root of the exp repo.
+   * @return
+   */
   private File prepareNextChildExec()
   {
     String execFolderName = Results.nextRandomResultFolderName();
     execFolders.add(execFolderName);
     File result = (new File(Results.DEFAULT_POOL_NAME + "/" + Results.DEFAULT_ALL_NAME, execFolderName));
-    result.mkdir();
-    File planFile = ExecutionInfoFiles.getFile(PLAN_TAG_NAME, result);
-    BriefIO.write(planFile, PermanentIndex.getNameNoExtension(templateFile));
     return result;
   }
 
