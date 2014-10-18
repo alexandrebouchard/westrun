@@ -111,15 +111,6 @@ public class Launch implements Runnable
     
     // run the commands (Later: collect the id?)
     launch(launchScripts);
-    
-//    // move template to previous-template folder
-//    if (!test && templateFile.getAbsoluteFile().getParentFile().getAbsoluteFile().equals(repo.resolveLocal(ExpRepoPath.TEMPLATE_DRAFTS)))
-//    {
-//      File previousTemplateDir = repo.resolveLocal(ExpRepoPath.TEMPLATE_EXECUTED); 
-//      File destination = new File(previousTemplateDir, uniqueCodeRepoName());
-//      templateFile.renameTo(destination);
-//      System.out.println("Executed template file moved to " + destination.getAbsolutePath());
-//    }
   }
   
   private void checkValidInputs()
