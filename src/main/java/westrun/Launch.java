@@ -44,7 +44,7 @@ public class Launch implements Runnable
   public File templateFile;
   
   @Option(condReq = "test=false")
-  public String description;
+  public String why;
   
   @Option(gloss = "Only runs one of the items in the cross product " +
   		"interactively, by passing qsub for testing.")

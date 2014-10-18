@@ -36,7 +36,7 @@ public class Search implements Runnable
   public String select = "";
   
   @Option
-  public String constraints = "";
+  public String where = "";
   
   @Override
   public void run()
@@ -49,7 +49,7 @@ public class Search implements Runnable
     else
     {
       Records records = PermanentIndex.getUpdatedIndex();
-      ResultSet results = records.select(select, constraints);
+      ResultSet results = records.select(select, where);
       try
       {
         while (results.next())

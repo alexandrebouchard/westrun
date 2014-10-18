@@ -63,7 +63,7 @@ The main task to send an experiment is to create a *template*. A template is sim
 
 Optionally, once the template is ready, you can test it via ``wrun-test -template path/to/templateDrafts``, this will run on the server directly, bypassing qsub, running only the first item in the cross product and showing you the output dynamically so that you can see right away if the code can successfully start. **Kill (control-C) early** to avoid hugging server resources.
 
-Finally, start your job using ``wrun-launch -template path/to/template -description Some description``. Note that this creates copies of your source code, so feel free to keep editing the source code while the code is running on server (more precisely, as soon as the command wrun-launch is completed).
+Finally, start your job using ``wrun-launch -template path/to/template -why Some description of why you ran these experiments``. Note that this creates copies of your source code, so feel free to keep editing the source code while the code is running on server (more precisely, as soon as the command wrun-launch is completed).
 
 
 Getting results back
@@ -90,7 +90,7 @@ wrun-search -select folder_location,git_commit
 If you want to keep only the executions where the code was ran clean (i.e. when there were not pending files in the repo), use
 
 ```
-wrun-search -select folder_location,git_commit,dirty_files -constraint "dirty_files='false'"
+wrun-search -select folder_location,git_commit,dirty_files -where "dirty_files='false'"
 ```
 
 Note that constraint and select can use any sql syntax (they are just turned into select and where clauses respectively).
@@ -100,7 +100,7 @@ Note that ``wrun-search`` can only use the part of the execution that does not c
 Here is an example:
 
 ```
-wrun-collect -select method,plan -constraints "plan = 'myPlan'" -csvFile results.csv -print method,iteration,accuracy
+wrun-collect -select method,plan -where "plan = 'myPlan'" -csvFile results.csv -print method,iteration,accuracy
 ```
 
 This will loop over the results folders produced by the plan ``myPlan``, and for each of these, loop over rows in ``results.csv``, and add to the output database the columns ``iteration`` and ``accuracy``, as well as the value of the option ``method`` specified in the option of the current result folder.

@@ -33,7 +33,7 @@ public class Collect implements Runnable
   public String select = Records.FOLDER_LOCATION_COLUMN;
   
   @Option(gloss = "Note: only constraints on the fields available in wrun-search are available for efficiency reasons")
-  public String constraints = "";
+  public String where = "";
   
   @Option(required = true, gloss = "Comma separated fields to output, could be either from select, and/or csv/map/simple files")
   public String print;
@@ -47,7 +47,8 @@ public class Collect implements Runnable
   @Option(gloss = "A simple file is a file where the key is the file name (extension-stripped), and the value is the contents")
   public ArrayList<String> simpleFiles = new ArrayList<>();
   
-  @Option(gloss = "If true, return output to standard out, if false, write results to a unique execution directory (and only print out the path of that exec dir)")
+  @Option(gloss = "If true, return output to standard out, if false, write results to a unique execution directory "
+      + "(and only print out the path of that exec dir)")
   public boolean interactive = true;
   
   private Records output;
@@ -63,7 +64,7 @@ public class Collect implements Runnable
     printSet = new LinkedHashSet<String>(Arrays.asList(print.split("\\s*,\\s*")));
     
     Records records = PermanentIndex.getUpdatedIndex();
-    ResultSet results = records.select(select, constraints);
+    ResultSet results = records.select(select, where);
     try
     {
       while (results.next())
@@ -79,16 +80,12 @@ public class Collect implements Runnable
           File mapFile = new File(directory, mapFileName);
           if (mapFile.exists())
             PermanentIndex.addMapFileToKeyValuePairs(mapFile, globalKeyValuePairs);
-          else
-            BriefLog.warnOnce("Warning: " + mapFileName + " skipped at least once (e.g. " + mapFile + " does not exist)");
         }
         for (String simpleFileName : simpleFiles)
         {
           File simpleFile = new File(directory, simpleFileName);
           if (simpleFile.exists())
             PermanentIndex.addSimpleFileContentsToKeyValuePairs(simpleFile, globalKeyValuePairs);
-          else
-            BriefLog.warnOnce("Warning: " + simpleFile + " skipped at least once (e.g. " + simpleFile + " does not exist)");
         }
         if (!StringUtils.isEmpty(csvFile))
         {
@@ -99,8 +96,6 @@ public class Collect implements Runnable
               csvLine.putAll(globalKeyValuePairs);
               output((LinkedHashMap<String, String>)csvLine);
             }
-          else
-            BriefLog.warnOnce("Warning: " + csvFile + " skipped at least once (e.g. " + csvFileAbsPath + " does not exist)");
         }
         else
           output(globalKeyValuePairs);
