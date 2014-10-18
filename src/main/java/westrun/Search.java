@@ -1,5 +1,8 @@
 package westrun;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -9,9 +12,13 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.google.common.io.ByteStreams;
+import com.sun.xml.internal.ws.api.addressing.WSEndpointReference.Metadata;
+
 import westrun.exprepo.ExperimentsRepository.NotInExpRepoException;
 import westrun.exprepo.PermanentIndex;
 import westrun.exprepo.PermanentIndex.CorruptIndexException;
+import briefj.BriefFiles;
 import briefj.db.Records;
 import briefj.opt.Option;
 import briefj.run.OptionsUtils;
@@ -31,16 +38,30 @@ import briefj.run.OptionsUtils.InvalidOptionsException;
  */
 public class Search implements Runnable
 {
-  // not an array to mirror sql syntax more closely, e.g. select a,b
   @Option 
   public String select = "";
   
   @Option
+  public boolean selectAll = false;
+  
+  @Option
   public String where = "";
+  
+  @Option(gloss = "Read the DB from standard in (when piping output of collect into search)")
+  public boolean pipe = false;
+
+  private Records records;
+  
+  @Option 
+  public boolean showHeader = true;
   
   @Override
   public void run()
   {
+    if (selectAll)
+      select = "*";
+    
+    records = getRecords(); 
     if (StringUtils.isEmpty(select))
     {
       System.out.println("Use -select to pick one or several of these columns (space separated).");
@@ -48,13 +69,19 @@ public class Search implements Runnable
     }
     else
     {
-      Records records = PermanentIndex.getUpdatedIndex();
       ResultSet results = records.select(select, where);
       try
       {
+        ResultSetMetaData metaData = results.getMetaData();
+        if (showHeader)
+        {
+          for (int i = 0; i < metaData.getColumnCount(); i++)
+            System.out.print(metaData.getColumnName(i+1) + "\t");
+          System.out.println();
+        }
         while (results.next())
         {
-          ResultSetMetaData metaData = results.getMetaData();
+          
           for (int i = 0; i < metaData.getColumnCount(); i++)
             System.out.print(results.getString(metaData.getColumnName(i+1)) + "\t");
           System.out.println();
@@ -67,9 +94,31 @@ public class Search implements Runnable
     }
   }
 
+  private Records getRecords()
+  {
+    try
+    {
+      if (pipe)
+      {
+        byte[] data = ByteStreams.toByteArray(System.in);
+        File temp = BriefFiles.createTempFile();
+        FileOutputStream fos = new FileOutputStream(temp);
+        fos.write(data);
+        fos.close();
+        return new Records(temp);
+      }
+      else
+      {
+        return PermanentIndex.getUpdatedIndex();
+      }
+    } catch (IOException e)
+    {
+      throw new RuntimeException(e);
+    }
+  }
+
   private void showColumns()
   {
-    Records records = PermanentIndex.getUpdatedIndex();
     List<String> columns = new ArrayList<>();
     for (String columnName : records.getCurrentCols())
       columns.add(columnName);
@@ -99,4 +148,5 @@ public class Search implements Runnable
       
     }
   }
+
 }

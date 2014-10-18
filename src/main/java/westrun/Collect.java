@@ -1,6 +1,8 @@
 package westrun;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -9,12 +11,13 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
 import westrun.exprepo.PermanentIndex;
+import briefj.BriefFiles;
 import briefj.BriefIO;
-import briefj.BriefLog;
 import briefj.db.Records;
 import briefj.opt.Option;
 import briefj.run.Mains;
@@ -35,9 +38,6 @@ public class Collect implements Runnable
   @Option(gloss = "Note: only constraints on the fields available in wrun-search are available for efficiency reasons")
   public String where = "";
   
-  @Option(required = true, gloss = "Comma separated fields to output, could be either from select, and/or csv/map/simple files")
-  public String print;
-  
   @Option
   public String csvFile = "";
   
@@ -47,30 +47,38 @@ public class Collect implements Runnable
   @Option(gloss = "A simple file is a file where the key is the file name (extension-stripped), and the value is the contents")
   public ArrayList<String> simpleFiles = new ArrayList<>();
   
-  @Option(gloss = "If true, return output to standard out, if false, write results to a unique execution directory "
-      + "(and only print out the path of that exec dir)")
-  public boolean interactive = true;
+  @Option(gloss = "If true, write results to a unique execution directory")
+  public boolean save = false;
+  
+  @Option
+  public boolean pipe = true;
   
   private Records output;
-  private LinkedHashSet<String> printSet;
 
+  private File databaseFile;
+  
   @Override
   public void run()
   {
+    if (!save && !pipe)
+    {
+      System.err.println("Select one of the two modes: -save or -pipe");
+      System.exit(1);
+    }
+    
     if (!select.contains(Records.FOLDER_LOCATION_COLUMN))
       select = select + "," + Records.FOLDER_LOCATION_COLUMN;
     
-    output = interactive ? null : new Records(Results.getFileInResultFolder("db.sqlite"));
-    printSet = new LinkedHashSet<String>(Arrays.asList(print.split("\\s*,\\s*")));
+    databaseFile = save ? Results.getFileInResultFolder("db.sqlite") : BriefFiles.createTempFile();
+    output =  new Records(databaseFile);  
     
     Records records = PermanentIndex.getUpdatedIndex();
-    ResultSet results = records.select(select, where);
     try
     {
+      ResultSet results = records.select(select, where);
       while (results.next())
       {
         LinkedHashMap<String,String> globalKeyValuePairs = new LinkedHashMap<>();
-//        for (String colName : select.split("\\s*,\\s*"))
         ResultSetMetaData metaData = results.getMetaData();
         for (int i = 0; i < metaData.getColumnCount(); i++)
           globalKeyValuePairs.put(metaData.getColumnName(i+1), results.getString(metaData.getColumnName(i+1)));
@@ -94,32 +102,28 @@ public class Collect implements Runnable
             for (Map<String,String> csvLine : BriefIO.readLines(csvFileAbsPath).indexCSV())
             {
               csvLine.putAll(globalKeyValuePairs);
-              output((LinkedHashMap<String, String>)csvLine);
+              
+              output.record((LinkedHashMap<String, String>)csvLine);
             }
         }
         else
-          output(globalKeyValuePairs);
+          output.record(globalKeyValuePairs);
+      }
+      
+      if (pipe)
+      {
+        byte[] data = Files.readAllBytes(databaseFile.toPath());
+        System.out.write(data);
       }
     } 
     catch (SQLException e)
     {
       throw new RuntimeException(e);
-    }
-  }
-  
-  private void output(LinkedHashMap<String, String> keyValuePairs)
-  {
-    keyValuePairs.keySet().retainAll(printSet);
-    if (output == null)
+    } 
+    catch (IOException e)
     {
-      for (String key : printSet) 
-        System.out.print(keyValuePairs.get(key) + "\t");
-      System.out.println();
-      // Using above strategy to preserve requested order when printing
-      // System.out.println(Joiner.on("\t").join(keyValuePairs.values()));
+      throw new RuntimeException(e);
     }
-    else
-      output.record(keyValuePairs);
   }
 
   public static void main(String [] args) 
@@ -128,10 +132,10 @@ public class Collect implements Runnable
     {
       Collect collect = new Collect();
       OptionsUtils.parseOptions(args, collect);
-      if (collect.interactive)
-        collect.run();
-      else 
+      if (collect.save)
         Mains.instrumentedRun(args, collect);
+      else 
+        collect.run();
     }
     catch (Exception e)
     {

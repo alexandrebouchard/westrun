@@ -87,29 +87,35 @@ To search over experiments, start by typing ``wrun-search``. You will see what f
 wrun-search -select folder_location,git_commit
 ```
 
-If you want to keep only the executions where the code was ran clean (i.e. when there were not pending files in the repo), use
+As another example, say you want to keep only the executions where the code was ran clean (i.e. when there were not pending files in the repo). To do this, you could use:
 
 ```
 wrun-search -select folder_location,git_commit,dirty_files -where "dirty_files='false'"
 ```
 
+You can also use ``-selectAll`` to show all, and you can disable the header line with ``-showHeader false``.
+
 Note that constraint and select can use any sql syntax (they are just turned into select and where clauses respectively).
 
-Note that ``wrun-search`` can only use the part of the execution that does not change across the execution (this is done for efficiency reason, so that it can be cached easily). To consolidate the results of the experiments, use ``wrun-collect``. The command ``wrun-collect`` has the same arguments as ``wrun-search``, but in addition, it gives you the possibility of specifying output files relative to each execution folder. These are consolidated into one big database. 
+When using ``wrun-search`` in the above fashion, we can only access to the part of the execution that does not change across the execution (this is done for efficiency reason, so that it can be cached easily). To consolidate the results of the experiments, we will use ``wrun-search`` in conjunction with ``wrun-collect``. The command ``wrun-collect`` has the same arguments as ``wrun-search``, but in addition, it gives you the possibility of specifying output files relative to each execution folder. These are consolidated into one big database. 
 
-Here is an example:
+Here is an example, which prints the end times (when available):
 
 ```
-wrun-collect -select method,plan -where "plan = 'myPlan'" -csvFile results.csv -print method,iteration,accuracy
+wrun-collect -select method,plan -where "plan = 'myPlan'" -csvFile results.csv | wrun-search -selectAll
 ```
 
 This will loop over the results folders produced by the plan ``myPlan``, and for each of these, loop over rows in ``results.csv``, and add to the output database the columns ``iteration`` and ``accuracy``, as well as the value of the option ``method`` specified in the option of the current result folder.
 
-This will print the result to the standard out, to output instead an sqlite database, add the option ``-outputDatabase path/to/db``.
+Note that you can also save the database instead of printing it using:
 
-Also, in addition to csv files, the following files can be handled in each result directory:
+```
+wrun-collect -select method,plan -where "plan = 'myPlan'" -csvFile results.csv -pipe false -save true
+```
+
+Also, in addition to csv files, the following files can be handled by ``wrun-collect`` in each result directory:
 
 - ``-mapFile``: tab separated key values, one per line.
-- ``-simpleFiles``: a file where the key is the file name (extension-stripped), and the value is the contents.
+- ``-simpleFiles``: a file where the key is the file name (extension-stripped, and all non-standard characters transformed to ``_``), and the value is the contents.
 
 
