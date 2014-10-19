@@ -83,7 +83,8 @@ public class PermanentIndex
         continue loop;
       }
       
-      System.out.println("Caching " + resultDirectory);
+      // need to remove to avoid interfering with concatenation of dbs via stdout
+//      System.out.println("Caching " + resultDirectory);
       
       addSimpleFileContentsToKeyValuePairs(ExecutionInfoFiles.getFile(START_TIME_FILE, resultDirectory), keyValuePairs);
       addSimpleFileContentsToKeyValuePairs(ExecutionInfoFiles.getFile(Launch.PLAN_TAG_NAME, resultDirectory), keyValuePairs);
@@ -114,7 +115,9 @@ public class PermanentIndex
   public static void addSimpleFileContentsToKeyValuePairs(File file, LinkedHashMap<String, String> keyValuePairs)
   {
     if (file.exists())
-      keyValuePairs.put(getNameNoExtension(file), BriefIO.fileToString(file));
+      keyValuePairs.put(getNameNoExtension(file), BriefIO.fileToString(file).replaceAll("\\n$", ""));
+    else
+      keyValuePairs.put(getNameNoExtension(file), "[empty]");
   }
   
   public static void addMapFileToKeyValuePairs(File file, LinkedHashMap<String, String> keyValuePairs)

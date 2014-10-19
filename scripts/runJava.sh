@@ -17,15 +17,18 @@ function runJava {
   ARGS=$@
   REP_ROOT="$(dirname "$DIR")"
   
-  # Simple script to run the java program from the eclipse-generated .classpath file 
-  # (used for development)
+  if [ -f ${REP_ROOT}/scripts/development ]
+  then
+    # Simple script to run the java program from the eclipse-generated .classpath file 
+    # (used for development)
 
-  #CLASSPATH=${REP_ROOT}/bin/:`cat ${REP_ROOT}/.classpath | grep jar | sed 's/.* path..//' | sed 's/\".*//' | tr "\n" ":"`
-  #CLASSPATH=${CLASSPATH}:`cat ${REP_ROOT}/.classpath | grep combineaccessrules | sed "s#.* path..#${REP_ROOT}/..#" | sed 's#\".*#/bin/#' | tr "\n" ":"`
-
-  # OR: For production, use the output from gradle installApp
-  CLASSPATH=${REP_ROOT}/build/install/westrun/lib/\*
-
+    CLASSPATH=${REP_ROOT}/bin/:`cat ${REP_ROOT}/.classpath | grep jar | sed 's/.* path..//' | sed 's/\".*//' | tr "\n" ":"`
+    CLASSPATH=${CLASSPATH}:`cat ${REP_ROOT}/.classpath | grep combineaccessrules | sed "s#.* path..#${REP_ROOT}/..#" | sed 's#\".*#/bin/#' | tr "\n" ":"`
+  else
+    # OR: For production, use the output from gradle installApp
+    CLASSPATH=${REP_ROOT}/build/install/westrun/lib/\*
+  fi
+  
   java -Xmx2g -cp "${CLASSPATH}" ${MAIN} ${ARGS}
 
 }

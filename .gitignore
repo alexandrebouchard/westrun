@@ -3,7 +3,5 @@
 .classpath
 .project
 bin
-bin/westrun
-bin/westrun/Main.class
 build
-scripts-dev
+development

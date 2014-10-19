@@ -95,23 +95,25 @@ wrun-search -select folder_location,git_commit,dirty_files -where "dirty_files='
 
 You can also use ``-selectAll`` to show all, and you can disable the header line with ``-showHeader false``.
 
-Note that constraint and select can use any sql syntax (they are just turned into select and where clauses respectively).
+Note that constraint and select can use any SQL syntax (they are just turned into select and where clauses respectively).
 
 When using ``wrun-search`` in the above fashion, we can only access to the part of the execution that does not change across the execution (this is done for efficiency reason, so that it can be cached easily). To consolidate the results of the experiments, we will use ``wrun-search`` in conjunction with ``wrun-collect``. The command ``wrun-collect`` has the same arguments as ``wrun-search``, but in addition, it gives you the possibility of specifying output files relative to each execution folder. These are consolidated into one big database. 
 
-Here is an example, which prints the end times (when available):
+Let us start with a simple example: monitoring the status of the runs associated with a certain plan. To print out the end times of all the runs created by a certain plan, we would just use:
 
 ```
-wrun-collect -select method,plan -where "plan = 'myPlan'" -csvFile results.csv | wrun-search -selectAll
+wrun-collect -where "plan like '%'" -simpleFiles executionInfo/end-time.txt | wrun-search -pipe -select "folder_location,end_time"
 ```
 
-This will loop over the results folders produced by the plan ``myPlan``, and for each of these, loop over rows in ``results.csv``, and add to the output database the columns ``iteration`` and ``accuracy``, as well as the value of the option ``method`` specified in the option of the current result folder.
+Here, ``%`` will match any string, this could be replaced by a specific plan.
+This will loop over the matched plans, and for each of these, add the contents of the file executionInfo/end-time.txt as a new column (the column name, end_time, is obtained by taking the file name, striping the extension, and replacing non-alphanumeric characters by underscores). This outputs to stdout a database created on the fly. To instruct wrun-search to obtain the database from stdin instead of from the default database, we add ``-pipe`` to wrun-search.
 
-Note that you can also save the database instead of printing it using:
 
-```
-wrun-collect -select method,plan -where "plan = 'myPlan'" -csvFile results.csv -pipe false -save true
-```
+Since this type of queries is often useful in practice, a shortcut for the above command is available under ``wrun-status %`` (replace % by a plan for faster performance). See that file under the directory ``scripts`` to see an example of how to do more advanced selection and formatting using wrun-search and wrun-collect.
+
+
+
+
 
 Also, in addition to csv files, the following files can be handled by ``wrun-collect`` in each result directory:
 

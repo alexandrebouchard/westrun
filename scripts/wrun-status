@@ -1,0 +1,11 @@
+#!/bin/bash
+
+EXPECTED_ARGS=1
+
+if [ $# -ne $EXPECTED_ARGS ]
+then
+  echo "Usage: `basename $0` [plan or %]"
+  exit 1
+fi
+
+wrun-collect -where "plan like '%'" -simpleFiles executionInfo/end-time.txt executionInfo/exception-message.txt | wrun-search -pipe -select "substr(folder_location,length(folder_location)-12,8) as exec_id,datetime(start_time/1000, 'unixepoch') as start_date,datetime(end_time/1000, 'unixepoch') as end_date,substr(exception_message, 0, 20) as exceptions,plan" | sed 's/1970-01-01 00:00:00/NA/g'0/NA/g'

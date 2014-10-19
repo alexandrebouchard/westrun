@@ -31,10 +31,6 @@ import briefj.run.Results;
  */
 public class Collect implements Runnable
 {
-  // not an array to mirror sql syntax more closely, e.g. select a,b
-  @Option(gloss = "Note: only fields available in wrun-search are available for efficiency reasons.")
-  public String select = Records.FOLDER_LOCATION_COLUMN;
-  
   @Option(gloss = "Note: only constraints on the fields available in wrun-search are available for efficiency reasons")
   public String where = "";
   
@@ -47,35 +43,27 @@ public class Collect implements Runnable
   @Option(gloss = "A simple file is a file where the key is the file name (extension-stripped), and the value is the contents")
   public ArrayList<String> simpleFiles = new ArrayList<>();
   
-  @Option(gloss = "If true, write results to a unique execution directory")
+  @Option(gloss = "If true, write results to a unique execution directory and print where things were saved. "
+      + "If false, output the DB to standard out to be piped into wrun-search")
   public boolean save = false;
-  
-  @Option
-  public boolean pipe = true;
   
   private Records output;
 
   private File databaseFile;
-  
+
+  private Records records;
+
   @Override
   public void run()
   {
-    if (!save && !pipe)
-    {
-      System.err.println("Select one of the two modes: -save or -pipe");
-      System.exit(1);
-    }
-    
-    if (!select.contains(Records.FOLDER_LOCATION_COLUMN))
-      select = select + "," + Records.FOLDER_LOCATION_COLUMN;
-    
     databaseFile = save ? Results.getFileInResultFolder("db.sqlite") : BriefFiles.createTempFile();
     output =  new Records(databaseFile);  
+    records = PermanentIndex.getUpdatedIndex();
     
-    Records records = PermanentIndex.getUpdatedIndex();
     try
     {
-      ResultSet results = records.select(select, where);
+      ResultSet results = records.select("*", where);
+      
       while (results.next())
       {
         LinkedHashMap<String,String> globalKeyValuePairs = new LinkedHashMap<>();
@@ -86,14 +74,12 @@ public class Collect implements Runnable
         for (String mapFileName : mapFiles)
         {
           File mapFile = new File(directory, mapFileName);
-          if (mapFile.exists())
-            PermanentIndex.addMapFileToKeyValuePairs(mapFile, globalKeyValuePairs);
+          PermanentIndex.addMapFileToKeyValuePairs(mapFile, globalKeyValuePairs);
         }
         for (String simpleFileName : simpleFiles)
         {
           File simpleFile = new File(directory, simpleFileName);
-          if (simpleFile.exists())
-            PermanentIndex.addSimpleFileContentsToKeyValuePairs(simpleFile, globalKeyValuePairs);
+          PermanentIndex.addSimpleFileContentsToKeyValuePairs(simpleFile, globalKeyValuePairs);
         }
         if (!StringUtils.isEmpty(csvFile))
         {
@@ -110,7 +96,7 @@ public class Collect implements Runnable
           output.record(globalKeyValuePairs);
       }
       
-      if (pipe)
+      if (!save)
       {
         byte[] data = Files.readAllBytes(databaseFile.toPath());
         System.out.write(data);
