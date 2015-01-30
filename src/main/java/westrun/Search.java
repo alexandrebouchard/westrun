@@ -54,6 +54,9 @@ public class Search implements Runnable
   @Option 
   public boolean showHeader = true;
   
+  @Option
+  public String delimiter = "\t";
+  
   @Override
   public void run()
   {
@@ -75,14 +78,14 @@ public class Search implements Runnable
         if (showHeader)
         {
           for (int i = 0; i < metaData.getColumnCount(); i++)
-            System.out.print(metaData.getColumnName(i+1) + "\t");
+            System.out.print(metaData.getColumnName(i+1) + delimiter);
           System.out.println();
         }
         while (results.next())
         {
           
           for (int i = 0; i < metaData.getColumnCount(); i++)
-            System.out.print(results.getString(metaData.getColumnName(i+1)) + "\t");
+            System.out.print(results.getString(metaData.getColumnName(i+1)) + delimiter);
           System.out.println();
         }
       } 
