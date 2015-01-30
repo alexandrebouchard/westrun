@@ -64,9 +64,14 @@ public class Collect implements Runnable
       while (results.next())
       {
         LinkedHashMap<String,String> globalKeyValuePairs = new LinkedHashMap<String, String>();
+        @SuppressWarnings("unchecked")
+        
         ResultSetMetaData metaData = results.getMetaData();
         for (int i = 0; i < metaData.getColumnCount(); i++)
-          globalKeyValuePairs.put(metaData.getColumnName(i+1), results.getString(metaData.getColumnName(i+1)));
+            globalKeyValuePairs.put(metaData.getColumnName(i+1), results.getString(metaData.getColumnName(i+1)));
+
+        globalKeyValuePairs.remove("id");
+        
         File directory = new File(results.getString(Records.FOLDER_LOCATION_COLUMN));
         for (String mapFileName : mapFiles)
         {
@@ -81,13 +86,11 @@ public class Collect implements Runnable
         if (!StringUtils.isEmpty(csvFile))
         {
           File csvFileAbsPath = new File(directory, csvFile);
-          LinkedHashMap<String,String> globalKeyValuePairsNoID = (LinkedHashMap<String, String>) globalKeyValuePairs.clone();
-          globalKeyValuePairsNoID.remove("id");
           
           if (csvFileAbsPath.exists())
             for (Map<String,String> csvLine : BriefIO.readLines(csvFileAbsPath).indexCSV())
             {
-              csvLine.putAll(globalKeyValuePairsNoID);
+              csvLine.putAll(globalKeyValuePairs);
               LinkedHashMap<String, String> csvLined = new LinkedHashMap<String, String>(csvLine);
               output.record(csvLined);
             }
