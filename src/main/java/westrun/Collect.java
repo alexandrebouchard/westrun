@@ -115,7 +115,7 @@ public class Collect implements Runnable
           output.record(globalKeyValuePairs);
       }
       output.conn.commit();
-      
+      output.close();
       if (!save)
       {
         byte[] data = Files.readAllBytes(databaseFile.toPath());
@@ -130,10 +130,7 @@ public class Collect implements Runnable
     {
       throw new RuntimeException(e);
     }
-    finally
-    {
-      output.close();
-    }
+
   }
 
   public static void main(String [] args) 
