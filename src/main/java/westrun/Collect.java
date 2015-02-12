@@ -28,6 +28,9 @@ import briefj.run.Results;
  */
 public class Collect implements Runnable
 {
+  @Option 
+  public String select = "*";
+  
   @Option(gloss = "Note: only constraints on the fields available in wrun-search are available for efficiency reasons")
   public String where = "";
   
@@ -59,8 +62,8 @@ public class Collect implements Runnable
     
     try
     {
-      ResultSet results = records.select("*", where);
-      
+      output.conn.setAutoCommit(false);
+      ResultSet results = records.select(select, where);
       while (results.next())
       {
         LinkedHashMap<String,String> globalKeyValuePairs = new LinkedHashMap<String, String>();
@@ -97,6 +100,7 @@ public class Collect implements Runnable
         else
           output.record(globalKeyValuePairs);
       }
+      output.conn.commit();
       
       if (!save)
       {
@@ -114,6 +118,7 @@ public class Collect implements Runnable
     }
     finally
     {
+      
       records.close();
     }
   }
