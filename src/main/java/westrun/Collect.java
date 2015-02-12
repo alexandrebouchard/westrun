@@ -64,7 +64,6 @@ public class Collect implements Runnable
       while (results.next())
       {
         LinkedHashMap<String,String> globalKeyValuePairs = new LinkedHashMap<String, String>();
-        @SuppressWarnings("unchecked")
         
         ResultSetMetaData metaData = results.getMetaData();
         for (int i = 0; i < metaData.getColumnCount(); i++)
@@ -113,22 +112,19 @@ public class Collect implements Runnable
     {
       throw new RuntimeException(e);
     }
+    finally
+    {
+      records.close();
+    }
   }
 
   public static void main(String [] args) 
   {
-    try
-    {
-      Collect collect = new Collect();
-      OptionsUtils.parseOptions(args, collect);
-      if (collect.save)
-        Mains.instrumentedRun(args, collect);
-      else 
-        collect.run();
-    }
-    catch (Exception e)
-    {
-      System.err.println(e);
-    }
+    Collect collect = new Collect();
+    OptionsUtils.parseOptions(args, collect);
+    if (collect.save)
+      Mains.instrumentedRun(args, collect);
+    else 
+      collect.run();
   }
 }
