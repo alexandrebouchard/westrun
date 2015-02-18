@@ -78,14 +78,14 @@ public class Search implements Runnable
         if (showHeader)
         {
           for (int i = 0; i < metaData.getColumnCount(); i++)
-            System.out.print(metaData.getColumnName(i+1) + delimiter);
+            System.out.print(metaData.getColumnName(i+1) + (i == metaData.getColumnCount() - 1? "" : delimiter));
           System.out.println();
         }
         while (results.next())
         {
           
           for (int i = 0; i < metaData.getColumnCount(); i++)
-            System.out.print(results.getString(metaData.getColumnName(i+1)) + delimiter);
+            System.out.print(results.getString(metaData.getColumnName(i+1)) + (i == metaData.getColumnCount() - 1? "" : delimiter));
           System.out.println();
         }
       } 
