@@ -242,6 +242,10 @@ public class Launch implements Runnable
       // tag the children exec
       File planFile = ExecutionInfoFiles.getFile(PLAN_TAG_NAME, resolvedChildrenExecFolder);
       BriefIO.write(planFile, PermanentIndex.getNameNoExtension(templateFile));
+      
+      // easily write why run
+      File whyFile = ExecutionInfoFiles.getFile(PLAN_WHY, resolvedChildrenExecFolder);
+      BriefIO.write(whyFile, why);
     }
   }
 
@@ -296,6 +300,7 @@ public class Launch implements Runnable
   }
   
   public static final String PLAN_TAG_NAME = "plan.txt";
+  public static final String PLAN_WHY = "why.txt";
   
   /**
    * Prepare the next children exec dir, and return its path relative to the root of the exp repo.
