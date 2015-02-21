@@ -117,7 +117,7 @@ Since this type of queries is often useful in practice, a shortcut for the above
 
 Also, in addition to csv files, the following files can be handled by ``wrun-collect`` in each result directory:
 
-- ``-mapFile``: tab separated key values, one per line.
+- ``-mapFiles``: tab separated key values, one per line.
 - ``-simpleFiles``: a file where the key is the file name (extension-stripped, and all non-standard characters transformed to ``_``), and the value is the contents.
 
 
