@@ -8,7 +8,9 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -51,30 +53,42 @@ public class Collect implements Runnable
 
   private File databaseFile;
 
-  private Records records;
-
   @Override
   public void run()
   {
-    databaseFile = save ? Results.getFileInResultFolder("db.sqlite") : BriefFiles.createTempFile();
-    output =  new Records(databaseFile);  
-    records = PermanentIndex.getUpdatedIndex();
-    
     try
     {
-      output.conn.setAutoCommit(false);
-      ResultSet results = records.select(select, where);
-      while (results.next())
+      // read all the info from the records up front and close that db since
+      // it is not that large, and the loop below can be slow sometimes
+      // in which case we want to still be able to do other operations 
+      // (sqlite does not like two processes using the db)
+      Queue<LinkedHashMap<String,String>> indexData = new LinkedList<>();
       {
-        LinkedHashMap<String,String> globalKeyValuePairs = new LinkedHashMap<String, String>();
-        
-        ResultSetMetaData metaData = results.getMetaData();
-        for (int i = 0; i < metaData.getColumnCount(); i++)
-            globalKeyValuePairs.put(metaData.getColumnName(i+1), results.getString(metaData.getColumnName(i+1)));
+        Records records = PermanentIndex.getUpdatedIndex();
+        ResultSet results = records.select(select, where);
+        while (results.next())
+        {
+          LinkedHashMap<String,String> globalKeyValuePairs = new LinkedHashMap<String, String>();
+          
+          ResultSetMetaData metaData = results.getMetaData();
+          for (int i = 0; i < metaData.getColumnCount(); i++)
+              globalKeyValuePairs.put(metaData.getColumnName(i+1), results.getString(metaData.getColumnName(i+1)));
+          indexData.add(globalKeyValuePairs);
+        }
+        records.close();
+      }
+      
+      databaseFile = save ? Results.getFileInResultFolder("db.sqlite") : BriefFiles.createTempFile();
+      output =  new Records(databaseFile);
+      output.conn.setAutoCommit(false);
+      while (!indexData.isEmpty())
+      {
+        // note: not keeping these in the indexData important as they might get inflated by map files and simple files
+        LinkedHashMap<String,String> globalKeyValuePairs = indexData.poll();
 
         globalKeyValuePairs.remove("id");
         
-        File directory = new File(results.getString(Records.FOLDER_LOCATION_COLUMN));
+        File directory = new File(globalKeyValuePairs.get(Records.FOLDER_LOCATION_COLUMN));
         for (String mapFileName : mapFiles)
         {
           File mapFile = new File(directory, mapFileName);
@@ -101,7 +115,7 @@ public class Collect implements Runnable
           output.record(globalKeyValuePairs);
       }
       output.conn.commit();
-      
+      output.close();
       if (!save)
       {
         byte[] data = Files.readAllBytes(databaseFile.toPath());
@@ -116,11 +130,7 @@ public class Collect implements Runnable
     {
       throw new RuntimeException(e);
     }
-    finally
-    {
-      
-      records.close();
-    }
+
   }
 
   public static void main(String [] args) 
