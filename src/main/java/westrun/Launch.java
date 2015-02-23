@@ -57,6 +57,9 @@ public class Launch implements Runnable
   @Option(gloss = "Path to look for the qsub command.")
   public ArrayList<String> qsubPaths = (ArrayList<String>) Lists.newArrayList("/opt/torque/bin", "/opt/bin");
   
+  @Option(gloss = "Local run")
+  public boolean noQsub = false;
+  
   private ExperimentsRepository repo;
 
   @Override
@@ -201,14 +204,18 @@ public class Launch implements Runnable
 
   private void launch(List<File> launchScripts)
   {
-    String remoteLaunchCommand = test ? "bash" : "qsub -d " + repo.remoteExpRepoRoot;
+      String remoteLaunchCommand;
+      if (!noQsub)
+          remoteLaunchCommand = test ? "bash" : "qsub -d " + repo.remoteExpRepoRoot;
+      else
+          remoteLaunchCommand = "nohup";
     
     List<String> commands = Lists.newArrayList();
     commands.add("PATH=$PATH:" + Joiner.on(":").join(qsubPaths));
     commands.add("cd " + repo.remoteExpRepoRoot); 
     
     for (File launchScript : launchScripts)
-      commands.add(remoteLaunchCommand + " " + relativize(launchScript));
+      commands.add(remoteLaunchCommand + " " + relativize(launchScript) + (noQsub ? "&" : ""));
     
     if (test) 
     {
