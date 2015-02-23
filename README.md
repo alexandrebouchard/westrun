@@ -75,8 +75,8 @@ All the results are stored in ``results``. However, a more convenient way to acc
 
 Once in a while, when no experiments are running, it is a good idea to erase unnecessary result directories and then run ``wrun-clean``, which will push these deletions to the server.
 
-Note that large files can be added in ```.westrun/syncignore`` to avoid syncing issues.
-For example, patterns such as ```/**/tmp``` can be used.
+Note that large files can be added in ``.westrun/syncignore`` to avoid syncing issues.
+For example, patterns such as ``/**/tmp`` can be used.
 
 Analyzing results
 -----------------
