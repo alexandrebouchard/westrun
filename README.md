@@ -3,7 +3,7 @@ Summary [![Build Status](https://travis-ci.org/alexandrebouchard/westrun.png?bra
 -------
 
 Westrun contains utilities to start jobs on westgrid (in particular, java jobs, but could be useful for other types of jobs as well). It could also be useful in other 
-scientific cluster environments.
+scientific cluster environments. See [alternative setups](#alt-setups) for additional details.
 
 The basic idea is to setup one or several experiments repositories (each linked with a
 code repository). From within each of these experiments repo, you can:
@@ -75,8 +75,8 @@ All the results are stored in ``results``. However, a more convenient way to acc
 
 Once in a while, when no experiments are running, it is a good idea to erase unnecessary result directories and then run ``wrun-clean``, which will push these deletions to the server.
 
-Note that large files can be added in ```.westrun/syncignore`` to avoid syncing issues.
-For example, patterns such as ```/**/tmp``` can be used.
+Note that large files can be added in ``.westrun/syncignore`` to avoid syncing issues.
+For example, patterns such as ``/**/tmp`` can be used.
 
 Analyzing results
 -----------------
@@ -108,16 +108,23 @@ wrun-collect -where "plan like '%'" -simpleFiles executionInfo/end-time.txt | wr
 Here, ``%`` will match any string, this could be replaced by a specific plan.
 This will loop over the matched plans, and for each of these, add the contents of the file executionInfo/end-time.txt as a new column (the column name, end_time, is obtained by taking the file name, striping the extension, and replacing non-alphanumeric characters by underscores). This outputs to stdout a database created on the fly. To instruct wrun-search to obtain the database from stdin instead of from the default database, we add ``-pipe`` to wrun-search.
 
-
 Since this type of queries is often useful in practice, a shortcut for the above command is available under ``wrun-status %`` (replace % by a plan for faster performance). See that file under the directory ``scripts`` to see an example of how to do more advanced selection and formatting using wrun-search and wrun-collect.
 
+The following files can be handled by ``wrun-collect`` in each result directory:
 
+- ``-csvFile``: comma separated file.
+- ``-mapFiles``: tab separated key values, one per line. Accepts a list of ``mapFiles`` to collect.
+- ``-simpleFiles``: a file where the key is the file name (extension-stripped, and all non-standard characters transformed to ``_``), and the value is the contents. Accepts a list of ``simpleFiles`` to collect.
 
+Alternative setups <a name="alt-setups"></a>
+-----------
 
+The default configuration for seamlessly running and analyzing jobs with Westrun is to package Java projects with Gradle. Moreover, the Java jobs should be instrumented runs handled with ```briefj.run.Mains.instrumentedRun```. 
 
-Also, in addition to csv files, the following files can be handled by ``wrun-collect`` in each result directory:
+However, most of Westrun's functionality can be recovered by simply saving results to a specific directory and options to a specific file within that directory. Each job should store an options.map file in the directory ``results/all/@{individualExec.getName()}/executionInfo/`` and results should be saved to ``results/all/@{individualExec.getName()}/``. This is easily achieved by passing the system environment variable ``SPECIFIED_RESULT_FOLDER=results/all/@{individualExec.getName()}`` as in the draft template file. 
 
-- ``-mapFile``: tab separated key values, one per line.
-- ``-simpleFiles``: a file where the key is the file name (extension-stripped, and all non-standard characters transformed to ``_``), and the value is the contents.
+By passing ``SPECIFIED_RESULT_FOLDER``, Westrun can be used for different types of jobs (e.g. R or Python). To run on different scientific cluster environments (eg. without qsub systems) a simple alternative is to submit jobs via ``nohup job.sh &``. This is built-in via 
+``wrun-launch -template path/to/template -why Some description of why you ran these experiments -noQsub``.
 
+Furthermore, note that Westrun can be used locally as well. This may be useful in cases where it is difficult to package applications for different servers (eg. python dependencies) or for small jobs where Westrun's organization and analysis tools are still desired. To run locally enable ssh connections and initialize as ``wrun-init -sshRemoteHost localhost -codeRepository /path/to/code``. It is recommended that you setup passwordless local login ``cat ~/.ssh/id_rsa.pub | ssh localhost 'cat >> ~/.ssh/authorized_keys'``. If running locally use the ``-noQsub`` argument when launching new experiments.
 

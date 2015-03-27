@@ -88,6 +88,7 @@ public class PermanentIndex
       
       addSimpleFileContentsToKeyValuePairs(ExecutionInfoFiles.getFile(START_TIME_FILE, resultDirectory), keyValuePairs);
       addSimpleFileContentsToKeyValuePairs(ExecutionInfoFiles.getFile(Launch.PLAN_TAG_NAME, resultDirectory), keyValuePairs);
+      addSimpleFileContentsToKeyValuePairs(ExecutionInfoFiles.getFile(Launch.PLAN_WHY, resultDirectory), keyValuePairs);
       addMapFileToKeyValuePairs(ExecutionInfoFiles.getFile(REPOSITORY_INFO, resultDirectory), keyValuePairs);
       boolean codeDirty = (ExecutionInfoFiles.getFile(REPOSITORY_DIRTY_FILES, resultDirectory).exists());
       keyValuePairs.put(DIRTY_FILE_COLUMN_NAME, "" + codeDirty);
