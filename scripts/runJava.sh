@@ -3,7 +3,8 @@
 function runJava {
   
   # Figure out where this script lives in 
-  SOURCE="${BASH_SOURCE[0]}"
+  SOURCE=$1
+  shift 1
   while [ -h "$SOURCE" ]; do 
     DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
     SOURCE="$(readlink "$SOURCE")"

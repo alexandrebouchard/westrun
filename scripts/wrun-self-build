@@ -1,5 +1,6 @@
 #!/bin/bash
 
 source runJava.sh
+SOURCE="${BASH_SOURCE[0]}"
 
-runJava westrun.code.SelfBuiltRepository $@
+runJava $SOURCE westrun.code.SelfBuiltRepository $@
