@@ -8,4 +8,4 @@ then
   exit 1
 fi
 
-wrun-collect -where "plan like '$1'" -simpleFiles executionInfo/end-time.txt executionInfo/exception-message.txt | wrun-search -pipe -select "substr(folder_location,length(folder_location)-12,8) as exec_id,git_commit_time,datetime(start_time/1000, 'unixepoch') as start_date,datetime(end_time/1000, 'unixepoch') as end_date,substr(exception_message, 0, 20) as exceptions,plan" | sed 's/1970-01-01 00:00:00/NA/g'
+wrun-collect -where "plan like '$1'" -simpleFiles executionInfo/end-time.txt executionInfo/exception-message.txt | wrun-search -pipe -select "substr(folder_location,length(folder_location)-12,8) as exec_id,git_commit_time,datetime(start_time/1000, 'unixepoch') as start_date,datetime(end_time/1000, 'unixepoch') as end_date,substr(exception_message, 0, 20) as exceptions,plan, why" | sed 's/1970-01-01 00:00:00/NA/g'
