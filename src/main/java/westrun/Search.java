@@ -46,7 +46,10 @@ public class Search implements Runnable
   @Option
   public String where = "";
   
-  @Option(gloss = "Read the DB from standard in (when piping output of collect into search)")
+  @Option(gloss = "Either: (i) if nothing, then use default database, or (ii) a db file. The -pipe argument takes priority")
+  public File db = null;
+  
+  @Option(gloss = "Whether to get a db from the stdin")
   public boolean pipe = false;
 
   private Records records;
@@ -109,10 +112,10 @@ public class Search implements Runnable
         fos.close();
         return new Records(temp);
       }
-      else
-      {
+      else if (db == null)
         return PermanentIndex.getUpdatedIndex();
-      }
+      else 
+        return new Records(db);
     } catch (IOException e)
     {
       throw new RuntimeException(e);
