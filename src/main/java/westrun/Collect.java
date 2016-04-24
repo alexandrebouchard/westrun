@@ -81,14 +81,20 @@ public class Collect implements Runnable
       databaseFile = save ? Results.getFileInResultFolder("db.sqlite") : BriefFiles.createTempFile();
       output =  new Records(databaseFile);
       output.conn.setAutoCommit(false);
-      while (!indexData.isEmpty())
+      loop : while (!indexData.isEmpty())
       {
         // note: not keeping these in the indexData important as they might get inflated by map files and simple files
         LinkedHashMap<String,String> globalKeyValuePairs = indexData.poll();
 
         globalKeyValuePairs.remove("id");
         
-        File directory = new File(globalKeyValuePairs.get(Records.FOLDER_LOCATION_COLUMN));
+        String directoryString = globalKeyValuePairs.get(Records.FOLDER_LOCATION_COLUMN);
+        if (directoryString == null)
+        {
+          System.err.println("Skipping malformed exec folder");
+          continue loop;
+        }
+        File directory = new File(directoryString);
         for (String mapFileName : mapFiles)
         {
           File mapFile = new File(directory, mapFileName);
