@@ -17,7 +17,7 @@ Installation
 
 - Requires: Java 8+, POSIX, git, Gradle 2.1+, rsync.
 - Setup a password-less connection to the remote host.
-- Clone this repo and compile using ``gradle installApp``.
+- Clone this repo and compile using ``gradle installApp``. (``gradle installDist`` in Gradle 3.3)
 - Add the folder ``scripts`` to your PATH variable. If you use mac, you can use TextEdit to add it by adding the following line:
   ``open -a TextEdit .bash_profile`` and copy this line ``export PATH=$PATH:/path/to/scripts`` to ``.bash_profile``.
 
