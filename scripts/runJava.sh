@@ -18,6 +18,7 @@ function runJava {
   ARGS=$@
   REP_ROOT="$(dirname "$DIR")"
   
+  
   if [ -f ${REP_ROOT}/scripts/development ]
   then
     # Simple script to run the java program from the eclipse-generated .classpath file 
@@ -29,6 +30,7 @@ function runJava {
     # OR: For production, use the output from gradle installApp
     CLASSPATH=${REP_ROOT}/build/install/westrun/lib/\*
   fi
+  
   
   java -Xmx2g -cp "${CLASSPATH}" ${MAIN} ${ARGS}
 
